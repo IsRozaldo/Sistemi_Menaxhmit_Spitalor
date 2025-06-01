@@ -41,6 +41,7 @@
             button1 = new Button();
             label2 = new Label();
             pictureBox1 = new PictureBox();
+            btnLogOut = new Button();
             panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)pictureBox2).BeginInit();
             panel2.SuspendLayout();
@@ -96,6 +97,7 @@
             // panel2
             // 
             panel2.BackColor = Color.MediumSeaGreen;
+            panel2.Controls.Add(btnLogOut);
             panel2.Controls.Add(button7);
             panel2.Controls.Add(button5);
             panel2.Controls.Add(btnAppointment);
@@ -195,6 +197,16 @@
             pictureBox1.TabIndex = 2;
             pictureBox1.TabStop = false;
             // 
+            // btnLogOut
+            // 
+            btnLogOut.Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold);
+            btnLogOut.Location = new Point(12, 536);
+            btnLogOut.Name = "btnLogOut";
+            btnLogOut.Size = new Size(285, 64);
+            btnLogOut.TabIndex = 8;
+            btnLogOut.Text = "Log Out";
+            btnLogOut.UseVisualStyleBackColor = true;
+            // 
             // Main
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
@@ -230,5 +242,6 @@
         private PictureBox pictureBox2;
         private Label label3;
         private Button button7;
+        private Button btnLogOut;
     }
 }
