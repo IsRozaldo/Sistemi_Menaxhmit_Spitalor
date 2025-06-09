@@ -8,8 +8,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Hospital_Management.Core.Data;
+using Hospital_Management.Core.Entities;
 
-namespace Hospital_Management
+namespace Hospital_Management.PL
 {
     public partial class AppointmentForm : Form
     {

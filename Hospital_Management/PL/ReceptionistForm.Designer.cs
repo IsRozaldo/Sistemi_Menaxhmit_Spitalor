@@ -1,4 +1,4 @@
-﻿namespace Hospital_Management
+﻿namespace Hospital_Management.PL
 {
     partial class ReceptionistForm
     {

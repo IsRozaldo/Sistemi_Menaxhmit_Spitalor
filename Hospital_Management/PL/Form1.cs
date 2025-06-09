@@ -1,4 +1,4 @@
-namespace Hospital_Management
+namespace Hospital_Management.PL
 {
     public partial class Form1 : Form
     {

@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace Hospital_Management
+namespace Hospital_Management.PL
 {
     public partial class Main : Form
     {

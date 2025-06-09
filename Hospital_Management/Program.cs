@@ -1,3 +1,5 @@
+using Hospital_Management.PL;
+
 namespace Hospital_Management
 {
     internal static class Program

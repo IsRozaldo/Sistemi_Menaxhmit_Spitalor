@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Hospital_Management.Core.Entities;
 
-namespace Hospital_Management
+namespace Hospital_Management.Core.Entities
 {
     public class Doctor
     {

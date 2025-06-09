@@ -5,8 +5,9 @@ using System.Text;
 using System.Threading.Tasks;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Hospital_Management.Core.Entities;
 
-namespace Hospital_Management
+namespace Hospital_Management.Core.Entities
 {
     public class Appointment
     {
