@@ -182,7 +182,7 @@
             // 
             btnNewRec.BackColor = Color.BurlyWood;
             btnNewRec.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold);
-            btnNewRec.Location = new Point(133, 564);
+            btnNewRec.Location = new Point(197, 564);
             btnNewRec.Name = "btnNewRec";
             btnNewRec.Size = new Size(124, 56);
             btnNewRec.TabIndex = 28;

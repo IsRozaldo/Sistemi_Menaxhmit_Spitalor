@@ -4,6 +4,7 @@ using Hospital_Management.Core.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Hospital_Management.Migrations
 {
     [DbContext(typeof(HospitalContext))]
-    partial class HospitalContextModelSnapshot : ModelSnapshot
+    [Migration("20250609134507_FinalBillAndServiceMigration")]
+    partial class FinalBillAndServiceMigration
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -230,14 +233,14 @@ namespace Hospital_Management.Migrations
                         new
                         {
                             ReceptionistID = 1,
-                            FullName = "RoZaldo",
+                            FullName = "Dardan Hoxha",
                             PhoneNumber = "9876543210",
                             UserID = 2
                         },
                         new
                         {
                             ReceptionistID = 2,
-                            FullName = "Helena",
+                            FullName = "Ermal Berisha",
                             PhoneNumber = "5555555555",
                             UserID = 3
                         });
@@ -382,20 +385,20 @@ namespace Hospital_Management.Migrations
                         new
                         {
                             UserID = 2,
-                            FullName = "RoZaldo",
-                            Password = "a4ayc/80/OGda4BO/1o/V0etpOqiLx1JwB5S3beHW0s=",
+                            FullName = "Dardan Hoxha",
+                            Password = "dhlTxDIicEh9sehdrRb2CnDbwGZeE3IL8RCRc6oULNs=",
                             PhoneNumber = "9876543210",
                             Role = "Receptionist",
-                            Username = "aldo"
+                            Username = "Dardan"
                         },
                         new
                         {
                             UserID = 3,
-                            FullName = "Helena",
-                            Password = "cQR0GpLnPrbF1pzQTPCvvlCoeWoBDY+iXar3nl4XO/M=",
+                            FullName = "Ermal Berisha",
+                            Password = "oIKDar/IMv5mWrze5EMPA8Fq7U/zQqAlG4n/w6ArEMs=",
                             PhoneNumber = "5555555555",
                             Role = "Receptionist",
-                            Username = "helena"
+                            Username = "Ermal"
                         });
                 });
 

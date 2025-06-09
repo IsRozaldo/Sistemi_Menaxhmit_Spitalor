@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using Hospital_Management.Core.Data;
 using Hospital_Management.Core.Entities;
+using Hospital_Management.Core; // Added for custom exceptions
 
 namespace Hospital_Management.PL
 {
@@ -42,11 +43,22 @@ namespace Hospital_Management.PL
         }
         private void txtAge_KeyPress(object? sender, KeyPressEventArgs e)
         {
-            // Allow only digits and control keys (like backspace)
-            if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar))
+            try
             {
-                e.Handled = true; // Stop the character from being entered
-                MessageBox.Show("Only numbers are allowed in the age field.");
+                // Allow only digits and control keys (like backspace)
+                if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar))
+                {
+                    e.Handled = true; // Stop the character from being entered
+                    throw new ValidationException("Only numbers are allowed in the age field.");
+                }
+            }
+            catch (ValidationException ex)
+            {
+                MessageBox.Show(ex.Message, "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"An unexpected error occurred: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
         private void LoadDoctorsIntoComboBox()
@@ -90,84 +102,92 @@ namespace Hospital_Management.PL
 
         private void button1_Click(object? sender, EventArgs e)
         {
-            if (!string.IsNullOrWhiteSpace(txtPatientID.Text))
+            try
             {
-                MessageBox.Show("You cannot create a duplicate patient. Please clear the form first.", "Duplicate Patient", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-
-            // Get form values
-            string fullName = txtFullName.Text.Trim();
-            int age = int.TryParse(txtAge.Text, out int a) ? a : 0;
-            string gender = cmbGender.Text.Trim();
-            string phoneNumber = txtPhoneNumber.Text.Trim();
-            string assignedTo = cmbAssignedDoctor.Text.Trim();
-            string description = txtDescription.Text.Trim();
-
-            // Basic validation (optional but recommended)
-            if (string.IsNullOrWhiteSpace(fullName) || string.IsNullOrWhiteSpace(phoneNumber) || int.IsNegative(age) || string.IsNullOrWhiteSpace(gender) || string.IsNullOrWhiteSpace(assignedTo) || string.IsNullOrWhiteSpace(description))
-            {
-                MessageBox.Show("Please fill out all required fields.");
-                return;
-            }
-
-            if (!Regex.IsMatch(fullName, @"^[a-zA-Z\s]+$"))
-            {
-                MessageBox.Show("You cannot add numbers or symbols to the patient name.");
-                return;
-            }
-
-            if (!Regex.IsMatch(txtPhoneNumber.Text, @"^\d{9,15}$"))
-            {
-                MessageBox.Show("Please enter a valid phone number.");
-                return;
-            }
-            if (txtPhoneNumber.Text.Length != 10)
-            {
-                MessageBox.Show("Phone number must have exactly 10 digits.", "Invalid Phone", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-            if (txtDescription.Text.Length > 150)
-            {
-                MessageBox.Show("The description cannot be longer than 250 characters.");
-                return;
-            }
-            using (var context = new HospitalContext())
-            {
-                // Check if a patient with the same attributes already exists
-                bool exists = context.Patients.Any(p =>
-                    p.FullName == fullName &&
-                    p.Age == age &&
-                    p.Gender == gender &&
-                    p.PhoneNumber == phoneNumber &&
-                    p.AssignedDoctor == assignedTo &&
-                    p.Description == description
-                );
-
-                if (exists)
+                if (!string.IsNullOrWhiteSpace(txtPatientID.Text))
                 {
-                    MessageBox.Show("A patient with these details already exists.", "Duplicate Entry", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    return;
+                    throw new DuplicateEntryException("You cannot create a duplicate patient. Please clear the form first.");
                 }
 
-                // Add new patient
-                var patient = new Patient
+                // Get form values
+                string fullName = txtFullName.Text.Trim();
+                int age = int.TryParse(txtAge.Text, out int a) ? a : 0;
+                string gender = cmbGender.Text.Trim();
+                string phoneNumber = txtPhoneNumber.Text.Trim();
+                string assignedTo = cmbAssignedDoctor.Text.Trim();
+                string description = txtDescription.Text.Trim();
+
+                // Basic validation (optional but recommended)
+                if (string.IsNullOrWhiteSpace(fullName) || string.IsNullOrWhiteSpace(phoneNumber) || int.IsNegative(age) || string.IsNullOrWhiteSpace(gender) || string.IsNullOrWhiteSpace(assignedTo) || string.IsNullOrWhiteSpace(description))
                 {
-                    FullName = fullName,
-                    Age = age,
-                    Gender = gender,
-                    PhoneNumber = phoneNumber,
-                    AssignedDoctor = assignedTo,
-                    Description = description
-                };
+                    throw new ValidationException("Please fill out all required fields.");
+                }
 
-                context.Patients.Add(patient);
-                context.SaveChanges();
+                if (!Regex.IsMatch(fullName, @"^[a-zA-Z\s]+$"))
+                {
+                    throw new ValidationException("You cannot add numbers or symbols to the patient name.");
+                }
 
-                MessageBox.Show("Patient added successfully!");
+                if (!Regex.IsMatch(txtPhoneNumber.Text, @"^\d{9,15}$"))
+                {
+                    throw new ValidationException("Please enter a valid phone number.");
+                }
+                if (txtPhoneNumber.Text.Length != 10)
+                {
+                    throw new ValidationException("Phone number must have exactly 10 digits.");
+                }
+                if (txtDescription.Text.Length > 150)
+                {
+                    throw new ValidationException("The description cannot be longer than 250 characters.");
+                }
+                using (var context = new HospitalContext())
+                {
+                    // Check if a patient with the same attributes already exists
+                    bool exists = context.Patients.Any(p =>
+                        p.FullName == fullName &&
+                        p.Age == age &&
+                        p.Gender == gender &&
+                        p.PhoneNumber == phoneNumber &&
+                        p.AssignedDoctor == assignedTo &&
+                        p.Description == description
+                    );
 
-                ClearInputs();
-                LoadPatients();
+                    if (exists)
+                    {
+                        throw new DuplicateEntryException("A patient with these details already exists.");
+                    }
+
+                    // Add new patient
+                    var patient = new Patient
+                    {
+                        FullName = fullName,
+                        Age = age,
+                        Gender = gender,
+                        PhoneNumber = phoneNumber,
+                        AssignedDoctor = assignedTo,
+                        Description = description
+                    };
+
+                    context.Patients.Add(patient);
+                    context.SaveChanges();
+
+                    MessageBox.Show("Patient added successfully!");
+
+                    ClearInputs();
+                    LoadPatients();
+                }
+            }
+            catch (ValidationException ex)
+            {
+                MessageBox.Show(ex.Message, "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+            catch (DuplicateEntryException ex)
+            {
+                MessageBox.Show(ex.Message, "Duplicate Entry", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"An unexpected error occurred: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
         private void LoadPatients()
@@ -209,116 +229,139 @@ namespace Hospital_Management.PL
 
         private void btnEditPatient_Click(object? sender, EventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(txtPatientID.Text) || originalPatient == null)
+            try
             {
-                MessageBox.Show("Please select a patient to edit.");
-                return;
-            }
-
-            if (!int.TryParse(txtPatientID.Text, out int Id))
-            {
-                MessageBox.Show("Invalid patient ID.");
-                return;
-            }
-            if (txtPhoneNumber.Text.Length != 10)
-            {
-                MessageBox.Show("Phone number must have exactly 10 digits.", "Invalid Phone", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-            string fullName = txtFullName.Text.Trim();
-
-            if (!Regex.IsMatch(fullName, @"^[a-zA-Z\s]+$"))
-            {
-                MessageBox.Show("You cannot edit a patient by adding numbers or symbols to the patient name.");
-                return;
-            }
-            int Age = int.Parse(txtAge.Text);
-
-            if (Age < 0 || Age > 100)
-            {
-                MessageBox.Show("Age must be between 0 and 100.");
-                return;
-            }
-
-            bool isChanged = txtFullName.Text != originalPatient.FullName ||
-                            txtAge.Text != originalPatient.Age.ToString() ||
-                            (cmbGender.SelectedItem?.ToString() ?? string.Empty) != originalPatient.Gender ||
-                            txtPhoneNumber.Text != originalPatient.PhoneNumber ||
-                            cmbAssignedDoctor.Text != originalPatient.AssignedDoctor ||
-                            txtDescription.Text != originalPatient.Description;
-
-            if (!isChanged)
-            {
-                MessageBox.Show("You haven't changed any attributes.", "No Changes", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                return;
-            }
-
-            using (var context = new HospitalContext())
-            {
-                var patient = context.Patients.Find(originalPatient.Id);
-
-                if (patient != null)
+                if (string.IsNullOrWhiteSpace(txtPatientID.Text) || originalPatient == null)
                 {
-                    patient.FullName = txtFullName.Text;
-                    patient.Age = int.Parse(txtAge.Text);
-                    patient.Gender = cmbGender.SelectedItem?.ToString() ?? string.Empty;
-                    patient.PhoneNumber = txtPhoneNumber.Text;
-                    patient.AssignedDoctor = cmbAssignedDoctor.Text;
-                    patient.Description = txtDescription.Text;
-
-                    context.SaveChanges();
-
-                    MessageBox.Show("Patient successfully updated!");
-
-                    LoadPatients();
-                    ClearInputs();    
+                    throw new ValidationException("Please select a patient to edit.");
                 }
-                else
+
+                if (!int.TryParse(txtPatientID.Text, out int Id))
                 {
-                    MessageBox.Show("Patient not found in database.");
+                    throw new ValidationException("Invalid patient ID.");
                 }
+                if (txtPhoneNumber.Text.Length != 10)
+                {
+                    throw new ValidationException("Phone number must have exactly 10 digits.");
+                }
+                string fullName = txtFullName.Text.Trim();
+
+                if (!Regex.IsMatch(fullName, @"^[a-zA-Z\s]+$"))
+                {
+                    throw new ValidationException("You cannot edit a patient by adding numbers or symbols to the patient name.");
+                }
+                int Age = int.Parse(txtAge.Text);
+
+                if (Age < 0 || Age > 100)
+                {
+                    throw new ValidationException("Age must be between 0 and 100.");
+                }
+
+                bool isChanged = txtFullName.Text != originalPatient.FullName ||
+                                txtAge.Text != originalPatient.Age.ToString() ||
+                                (cmbGender.SelectedItem?.ToString() ?? string.Empty) != originalPatient.Gender ||
+                                txtPhoneNumber.Text != originalPatient.PhoneNumber ||
+                                cmbAssignedDoctor.Text != originalPatient.AssignedDoctor ||
+                                txtDescription.Text != originalPatient.Description;
+
+                if (!isChanged)
+                {
+                    MessageBox.Show("You haven't changed any attributes.", "No Changes", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    return;
+                }
+
+                using (var context = new HospitalContext())
+                {
+                    var patient = context.Patients.Find(originalPatient.Id);
+
+                    if (patient != null)
+                    {
+                        patient.FullName = txtFullName.Text;
+                        patient.Age = int.Parse(txtAge.Text);
+                        patient.Gender = cmbGender.SelectedItem?.ToString() ?? string.Empty;
+                        patient.PhoneNumber = txtPhoneNumber.Text;
+                        patient.AssignedDoctor = cmbAssignedDoctor.Text;
+                        patient.Description = txtDescription.Text;
+
+                        context.SaveChanges();
+
+                        MessageBox.Show("Patient successfully updated!");
+
+                        LoadPatients();
+                        ClearInputs();    
+                    }
+                    else
+                    {
+                        throw new NotFoundException("Patient not found in database.");
+                    }
+                }
+            }
+            catch (ValidationException ex)
+            {
+                MessageBox.Show(ex.Message, "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+            catch (NotFoundException ex)
+            {
+                MessageBox.Show(ex.Message, "Not Found Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"An unexpected error occurred: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
         private void button3_Click(object? sender, EventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(txtPatientID.Text))
+            try
             {
-                MessageBox.Show("Please select a patient to remove.");
-                return;
-            }
-
-            if (!int.TryParse(txtPatientID.Text, out int patientId))
-            {
-                MessageBox.Show("Invalid patient ID.");
-                return;
-            }
-
-            var result = MessageBox.Show("Are you sure you want to remove the patient?",
-                                         "Confirm Deletion",
-                                         MessageBoxButtons.YesNo,
-                                         MessageBoxIcon.Warning);
-
-            if (result == DialogResult.Yes)
-            {
-                using (var context = new HospitalContext())
+                if (string.IsNullOrWhiteSpace(txtPatientID.Text))
                 {
-                    var patient = context.Patients.Find(patientId);
+                    throw new ValidationException("Please select a patient to remove.");
+                }
 
-                    if (patient != null)
-                    {
-                        context.Patients.Remove(patient);
-                        context.SaveChanges();
+                if (!int.TryParse(txtPatientID.Text, out int patientId))
+                {
+                    throw new ValidationException("Invalid patient ID.");
+                }
 
-                        MessageBox.Show("Patient removed successfully.");
-                        LoadPatients();
-                        ClearInputs();
-                    }
-                    else
+                var result = MessageBox.Show("Are you sure you want to remove the patient?",
+                                             "Confirm Deletion",
+                                             MessageBoxButtons.YesNo,
+                                             MessageBoxIcon.Warning);
+
+                if (result == DialogResult.Yes)
+                {
+                    using (var context = new HospitalContext())
                     {
-                        MessageBox.Show("Patient not found.");
+                        var patient = context.Patients.Find(patientId);
+
+                        if (patient != null)
+                        {
+                            context.Patients.Remove(patient);
+                            context.SaveChanges();
+
+                            MessageBox.Show("Patient removed successfully.");
+                            LoadPatients();
+                            ClearInputs();
+                        }
+                        else
+                        {
+                            throw new NotFoundException("Patient not found.");
+                        }
                     }
                 }
+            }
+            catch (ValidationException ex)
+            {
+                MessageBox.Show(ex.Message, "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+            catch (NotFoundException ex)
+            {
+                MessageBox.Show(ex.Message, "Not Found Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"An unexpected error occurred: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -329,7 +372,7 @@ namespace Hospital_Management.PL
 
         private void btnRefresh_Click(object? sender, EventArgs e)
         {
-            LoadDoctorsIntoComboBox();
+            LoadPatients();
         }
     }
 }

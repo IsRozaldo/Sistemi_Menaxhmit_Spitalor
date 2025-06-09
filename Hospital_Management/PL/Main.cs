@@ -36,7 +36,8 @@ namespace Hospital_Management.PL
 
         private void button2_Click(object sender, EventArgs e)
         {
-            MessageBox.Show("Doctor management functionality is coming soon!", "Under Development", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            DoctorForm doctorForm = new DoctorForm();
+            doctorForm.Show();
         }
 
         private void button1_Click(object sender, EventArgs e)
@@ -53,7 +54,8 @@ namespace Hospital_Management.PL
 
         private void button5_Click(object sender, EventArgs e)
         {
-            MessageBox.Show("Bill management functionality is coming soon!", "Under Development", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            BillForm billForm = new BillForm();
+            billForm.Show();
         }
 
         private void btnLogOut_Click(object sender, EventArgs e)

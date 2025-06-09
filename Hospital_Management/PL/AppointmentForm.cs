@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using Hospital_Management.Core.Data;
 using Hospital_Management.Core.Entities;
+using Hospital_Management.Core;
 
 namespace Hospital_Management.PL
 {
@@ -167,7 +168,7 @@ namespace Hospital_Management.PL
 
             using (var context = new HospitalContext())
             {
-                int selectedPatientId = Convert.ToInt32(cmbSelectPatient.SelectedValue);
+                int selectedPatientId = (int?)cmbSelectPatient.SelectedValue ?? 0;
                 DateTime selectedDate = dateTimePickerScheduled.Value.Date;
 
                 bool appointmentExists = context.Appointments
@@ -180,11 +181,11 @@ namespace Hospital_Management.PL
                 }
                 var appointment = new Appointment
                 {
-                    PatientID = Convert.ToInt32(cmbSelectPatient.SelectedValue),
-                    DoctorID = Convert.ToInt32(cmbAssignedTo.SelectedValue),
+                    PatientID = (int?)cmbSelectPatient.SelectedValue ?? 0,
+                    DoctorID = (int?)cmbAssignedTo.SelectedValue ?? 0,
                     Age = int.Parse(txtAge.Text),
                     Gender = txtGender.Text,
-                    ReceptionistID = Convert.ToInt32(cmbCreatedBy.SelectedValue),
+                    ReceptionistID = (int?)cmbCreatedBy.SelectedValue ?? 0,
                     CreatedAt = DateTime.Now,
                     ScheduledDate = dateTimePickerScheduled.Value,
                 };
@@ -208,7 +209,7 @@ namespace Hospital_Management.PL
 
                 if (result == DialogResult.Yes)
                 {
-                    int appointmentId = Convert.ToInt32(dataGridViewAppointments.SelectedRows[0].Cells["AppointmentID"].Value ?? 0);
+                    int appointmentId = (int?)dataGridViewAppointments.SelectedRows[0].Cells["AppointmentID"].Value ?? 0;
 
                     using (var context = new HospitalContext())
                     {
@@ -252,44 +253,59 @@ namespace Hospital_Management.PL
 
         private void btnEditRec_Click(object? sender, EventArgs e)
         {
-            if (dataGridViewAppointments.SelectedRows.Count > 0)
+            try
             {
-                int appointmentId = Convert.ToInt32(dataGridViewAppointments.SelectedRows[0].Cells["AppointmentID"].Value ?? 0);
-                using (var context = new HospitalContext())
+                if (dataGridViewAppointments.SelectedRows.Count > 0)
                 {
-                    var appointment = context.Appointments.Find(appointmentId);
-                    if (appointment != null)
+                    int appointmentId = (int?)dataGridViewAppointments.SelectedRows[0].Cells["AppointmentID"].Value ?? 0;
+                    using (var context = new HospitalContext())
                     {
-                        if (cmbSelectPatient.SelectedValue != null)
+                        var appointment = context.Appointments.Find(appointmentId);
+                        if (appointment != null)
                         {
-                            appointment.PatientID = Convert.ToInt32(cmbSelectPatient.SelectedValue);
-                        }
-                        if (cmbAssignedTo.SelectedValue != null)
-                        {
-                            appointment.DoctorID = Convert.ToInt32(cmbAssignedTo.SelectedValue);
-                        }
-                        appointment.Age = int.Parse(txtAge.Text);
-                        appointment.Gender = txtGender.Text;
-                        if (cmbCreatedBy.SelectedValue != null)
-                        {
-                            appointment.ReceptionistID = Convert.ToInt32(cmbCreatedBy.SelectedValue);
-                        }
-                        appointment.ScheduledDate = dateTimePickerScheduled.Value;
+                            if (cmbSelectPatient.SelectedValue != null)
+                            {
+                                appointment.PatientID = (int?)cmbSelectPatient.SelectedValue ?? 0;
+                            }
+                            if (cmbAssignedTo.SelectedValue != null)
+                            {
+                                appointment.DoctorID = (int?)cmbAssignedTo.SelectedValue ?? 0;
+                            }
+                            appointment.Age = int.Parse(txtAge.Text);
+                            appointment.Gender = txtGender.Text;
+                            if (cmbCreatedBy.SelectedValue != null)
+                            {
+                                appointment.ReceptionistID = (int?)cmbCreatedBy.SelectedValue ?? 0;
+                            }
+                            appointment.ScheduledDate = dateTimePickerScheduled.Value;
 
-                        context.SaveChanges();
-                        MessageBox.Show("Appointment successfully updated!");
-                        LoadAppointmentsToGrid();
-                        ClearForm();
-                    }
-                    else
-                    {
-                        MessageBox.Show("Appointment not found in database.");
+                            context.SaveChanges();
+                            MessageBox.Show("Appointment successfully updated!");
+                            LoadAppointmentsToGrid();
+                            ClearForm();
+                        }
+                        else
+                        {
+                            MessageBox.Show("Appointment not found in database.");
+                        }
                     }
                 }
+                else
+                {
+                    MessageBox.Show("Please select an appointment to edit.", "No Appointment Selected", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
             }
-            else
+            catch (ValidationException ex)
             {
-                MessageBox.Show("Please select an appointment to edit.", "No Appointment Selected", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show(ex.Message, "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+            catch (NotFoundException ex)
+            {
+                MessageBox.Show(ex.Message, "Not Found Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"An unexpected error occurred: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
     }

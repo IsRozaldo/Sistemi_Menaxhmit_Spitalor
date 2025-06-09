@@ -130,6 +130,7 @@
             button5.TabIndex = 5;
             button5.Text = "Bill";
             button5.UseVisualStyleBackColor = true;
+            button5.Click += button5_Click;
             // 
             // btnAppointment
             // 
@@ -206,6 +207,7 @@
             btnLogOut.TabIndex = 8;
             btnLogOut.Text = "Log Out";
             btnLogOut.UseVisualStyleBackColor = true;
+            btnLogOut.Click += btnLogOut_Click;
             // 
             // Main
             // 

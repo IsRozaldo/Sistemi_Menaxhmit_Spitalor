@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Hospital_Management.Core.Entities;
@@ -16,6 +14,8 @@ namespace Hospital_Management.Core.Data
         public DbSet<Appointment> Appointments { get; set; }
         public DbSet<User> Users { get; set; }
         public DbSet<Admin> Admins { get; set; }
+        public DbSet<Bill> Bills { get; set; }
+        public DbSet<Service> Services { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -24,18 +24,36 @@ namespace Hospital_Management.Core.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            base.OnModelCreating(modelBuilder);
-
             // Configure relationships
+            modelBuilder.Entity<Appointment>()
+                .HasOne(a => a.Patient)
+                .WithMany(p => p.Appointments)
+                .HasForeignKey(a => a.PatientID);
+
+            modelBuilder.Entity<Appointment>()
+                .HasOne(a => a.Doctor)
+                .WithMany(d => d.Appointments)
+                .HasForeignKey(a => a.DoctorID);
+
+            modelBuilder.Entity<Appointment>()
+                .HasOne(a => a.Receptionist)
+                .WithMany(r => r.Appointments)
+                .HasForeignKey(a => a.ReceptionistID);
+
             modelBuilder.Entity<Receptionist>()
                 .HasOne(r => r.User)
-                .WithOne()
-                .HasForeignKey<Receptionist>(r => r.UserID);
+                .WithMany()
+                .HasForeignKey(r => r.UserID);
 
             modelBuilder.Entity<Admin>()
                 .HasOne(a => a.User)
-                .WithOne()
-                .HasForeignKey<Admin>(a => a.UserID);
+                .WithMany()
+                .HasForeignKey(a => a.UserID);
+
+            modelBuilder.Entity<Bill>()
+                .HasOne(b => b.Patient)
+                .WithMany()
+                .HasForeignKey(b => b.PatientID);
 
             // Seed default admin user
             modelBuilder.Entity<User>().HasData(
@@ -51,19 +69,19 @@ namespace Hospital_Management.Core.Data
                 new User
                 {
                     UserID = 2,
-                    Username = "Dardan",
-                    Password = User.HashPassword("Hoxha2024"),
+                    Username = "aldo",
+                    Password = User.HashPassword("1"),
                     Role = "Receptionist",
-                    FullName = "Dardan Hoxha",
+                    FullName = "RoZaldo",
                     PhoneNumber = "9876543210"
                 },
                 new User
                 {
                     UserID = 3,
-                    Username = "Ermal",
-                    Password = User.HashPassword("Berisha2024"),
+                    Username = "helena",
+                    Password = User.HashPassword("332"),
                     Role = "Receptionist",
-                    FullName = "Ermal Berisha",
+                    FullName = "Helena",
                     PhoneNumber = "5555555555"
                 }
             );
@@ -85,17 +103,32 @@ namespace Hospital_Management.Core.Data
                 {
                     ReceptionistID = 1,
                     UserID = 2,
-                    FullName = "Dardan Hoxha",
+                    FullName = "RoZaldo",
                     PhoneNumber = "9876543210"
                 },
                 new Receptionist
                 {
                     ReceptionistID = 2,
                     UserID = 3,
-                    FullName = "Ermal Berisha",
+                    FullName = "Helena",
                     PhoneNumber = "5555555555"
                 }
             );
+
+            // Seed default services
+            var services = new[]
+            {
+                new Service { ServiceID = 1, Name = "General Consultation", Description = "Standard doctor consultation", Price = 50.00m, Category = "Consultation" },
+                new Service { ServiceID = 2, Name = "Specialist Consultation", Description = "Specialist doctor consultation", Price = 100.00m, Category = "Consultation" },
+                new Service { ServiceID = 3, Name = "Blood Test", Description = "Complete blood count", Price = 30.00m, Category = "Laboratory" },
+                new Service { ServiceID = 4, Name = "X-Ray", Description = "Standard X-Ray imaging", Price = 80.00m, Category = "Imaging" },
+                new Service { ServiceID = 5, Name = "MRI Scan", Description = "Magnetic Resonance Imaging", Price = 300.00m, Category = "Imaging" },
+                new Service { ServiceID = 6, Name = "ECG", Description = "Electrocardiogram", Price = 60.00m, Category = "Diagnostic" },
+                new Service { ServiceID = 7, Name = "Ultrasound", Description = "Ultrasound examination", Price = 120.00m, Category = "Imaging" },
+                new Service { ServiceID = 8, Name = "Vaccination", Description = "Standard vaccination", Price = 40.00m, Category = "Treatment" }
+            };
+
+            modelBuilder.Entity<Service>().HasData(services);
         }
     }
 }
