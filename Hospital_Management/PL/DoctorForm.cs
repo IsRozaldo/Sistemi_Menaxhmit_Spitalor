@@ -42,11 +42,17 @@ namespace Hospital_Management.PL
                     PhoneNumber = row.Cells["PhoneNumber"].Value?.ToString() ?? string.Empty,
                     OfficeNumber = row.Cells["OfficeNumber"].Value?.ToString() ?? string.Empty
                 };
+
+                // Fill the form with doctor information
                 txtDoctorID.Text = originalDoctor.DoctorID.ToString();
                 txtFullName.Text = originalDoctor.FullName;
                 cmbSpecialty.Text = originalDoctor.Specialty;
                 txtPhone.Text = originalDoctor.PhoneNumber;
                 txtOfficeNumber.Text = originalDoctor.OfficeNumber;
+
+                // Disable the Add button and enable the Edit button
+                button4.Enabled = false; // Add button
+                button3.Enabled = true;  // Edit button
             }
         }
 

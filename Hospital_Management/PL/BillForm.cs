@@ -29,7 +29,7 @@ namespace Hospital_Management.PL
             {
                 var patients = context.Patients.ToList();
                 cmbPatient.DisplayMember = "FullName";
-                cmbPatient.ValueMember = "PatientID";
+                cmbPatient.ValueMember = "Id";
                 cmbPatient.DataSource = patients;
             }
         }

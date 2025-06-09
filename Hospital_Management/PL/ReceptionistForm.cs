@@ -63,9 +63,14 @@ namespace Hospital_Management.PL
                     UserID = Convert.ToInt32(row.Cells["UserID"].Value)
                 };
 
+                // Fill the form with receptionist information
                 txtReceptionistID.Text = originalReceptionist.ReceptionistID.ToString();
                 txtFullName.Text = originalReceptionist.FullName;
                 txtPhoneNumber.Text = originalReceptionist.PhoneNumber;
+
+                // Disable the Add button and enable the Edit button
+                btnAddRec.Enabled = false;
+                btnEditRec.Enabled = true;
             }
         }
 

@@ -108,6 +108,7 @@ namespace Hospital_Management.PL
                     Description = row.Cells["Description"].Value?.ToString() ?? string.Empty
                 };
 
+                // Fill the form with patient information
                 txtPatientID.Text = originalPatient.Id.ToString();
                 txtFullName.Text = originalPatient.FullName;
                 txtAge.Text = originalPatient.Age.ToString();
@@ -115,6 +116,10 @@ namespace Hospital_Management.PL
                 txtPhoneNumber.Text = originalPatient.PhoneNumber;
                 cmbAssignedDoctor.Text = originalPatient.AssignedDoctor;
                 txtDescription.Text = originalPatient.Description;
+
+                // Disable the Add button and enable the Edit button
+                btnAddPatient.Enabled = false;
+                btnEditPatient.Enabled = true;
             }
         }
 
