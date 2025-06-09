@@ -27,6 +27,12 @@ namespace Hospital_Management.PL
             cmbGender.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbAssignedDoctor.DropDownStyle = ComboBoxStyle.DropDownList;
             this.Load += new System.EventHandler(this.PatientForm_Load);
+
+            // Add KeyPress handlers for Enter key navigation
+            txtFullName.KeyPress += TextBox_KeyPress;
+            txtAge.KeyPress += TextBox_KeyPress;
+            txtPhoneNumber.KeyPress += TextBox_KeyPress;
+            txtDescription.KeyPress += TextBox_KeyPress;
         }
         private void TxtPhoneNumber_KeyPress(object? sender, KeyPressEventArgs e)
         {
@@ -377,6 +383,15 @@ namespace Hospital_Management.PL
         private void btnRefresh_Click(object? sender, EventArgs e)
         {
             LoadPatients();
+        }
+
+        private void TextBox_KeyPress(object? sender, KeyPressEventArgs e)
+        {
+            if (e.KeyChar == (char)Keys.Enter)
+            {
+                e.Handled = true; // Prevent the beep sound
+                SelectNextControl((Control)sender, true, true, true, true);
+            }
         }
     }
 }

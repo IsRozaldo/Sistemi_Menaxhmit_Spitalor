@@ -18,6 +18,9 @@ namespace Hospital_Management.PL
             LoadPatients();
             LoadServices();
             UpdateTotalAmount();
+
+            // Add KeyPress handlers for Enter key navigation
+            cmbPatient.KeyPress += TextBox_KeyPress;
         }
 
         private void LoadPatients()
@@ -143,6 +146,15 @@ namespace Hospital_Management.PL
             selectedServices.Clear();
             UpdateSelectedServicesList();
             UpdateTotalAmount();
+        }
+
+        private void TextBox_KeyPress(object? sender, KeyPressEventArgs e)
+        {
+            if (e.KeyChar == (char)Keys.Enter)
+            {
+                e.Handled = true; // Prevent the beep sound
+                SelectNextControl((Control)sender, true, true, true, true);
+            }
         }
     }
 } 

@@ -25,6 +25,10 @@ namespace Hospital_Management.PL
             userRole = role;
             LoadReceptionists();
             SetButtonAccess();
+
+            // Add KeyPress handlers for Enter key navigation
+            txtFullName.KeyPress += TextBox_KeyPress;
+            txtPhoneNumber.KeyPress += TextBox_KeyPress;
         }
 
         private void SetButtonAccess()
@@ -354,6 +358,15 @@ namespace Hospital_Management.PL
             catch (Exception ex)
             {
                 MessageBox.Show($"An unexpected error occurred: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void TextBox_KeyPress(object? sender, KeyPressEventArgs e)
+        {
+            if (e.KeyChar == (char)Keys.Enter)
+            {
+                e.Handled = true; // Prevent the beep sound
+                SelectNextControl((Control)sender, true, true, true, true);
             }
         }
     }

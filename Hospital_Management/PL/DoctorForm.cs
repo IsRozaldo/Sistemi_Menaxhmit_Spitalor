@@ -21,6 +21,11 @@ namespace Hospital_Management.PL
         {
             InitializeComponent();
             cmbSpecialty.DropDownStyle = ComboBoxStyle.DropDownList;
+
+            // Add KeyPress handlers for Enter key navigation
+            txtFullName.KeyPress += TextBox_KeyPress;
+            txtPhone.KeyPress += TextBox_KeyPress;
+            txtOfficeNumber.KeyPress += TextBox_KeyPress;
         }
 
         private void dataGridView1_CellContentClick(object? sender, DataGridViewCellEventArgs e)
@@ -312,6 +317,15 @@ namespace Hospital_Management.PL
             catch (Exception ex)
             {
                 MessageBox.Show($"An unexpected error occurred: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void TextBox_KeyPress(object? sender, KeyPressEventArgs e)
+        {
+            if (e.KeyChar == (char)Keys.Enter)
+            {
+                e.Handled = true; // Prevent the beep sound
+                SelectNextControl((Control)sender, true, true, true, true);
             }
         }
     }
