@@ -57,6 +57,7 @@
             label11 = new Label();
             btnFilterAppointments = new Button();
             btnClearFilter = new Button();
+            lblFilterSectionHeader = new Label();
             panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)dataGridViewAppointments).BeginInit();
             SuspendLayout();
@@ -68,7 +69,7 @@
             panel1.Dock = DockStyle.Top;
             panel1.Location = new Point(0, 0);
             panel1.Name = "panel1";
-            panel1.Size = new Size(800, 70);
+            panel1.Size = new Size(1182, 70);
             panel1.TabIndex = 0;
             // 
             // label1
@@ -196,7 +197,7 @@
             dataGridViewAppointments.Location = new Point(55, 379);
             dataGridViewAppointments.Name = "dataGridViewAppointments";
             dataGridViewAppointments.RowHeadersWidth = 51;
-            dataGridViewAppointments.Size = new Size(679, 253);
+            dataGridViewAppointments.Size = new Size(1061, 253);
             dataGridViewAppointments.TabIndex = 41;
             // 
             // btnAddRec
@@ -276,7 +277,7 @@
             // cmbFilterDoctor
             // 
             cmbFilterDoctor.FormattingEnabled = true;
-            cmbFilterDoctor.Location = new Point(948, 127);
+            cmbFilterDoctor.Location = new Point(948, 120);
             cmbFilterDoctor.Name = "cmbFilterDoctor";
             cmbFilterDoctor.Size = new Size(200, 28);
             cmbFilterDoctor.TabIndex = 50;
@@ -285,7 +286,7 @@
             // 
             label9.AutoSize = true;
             label9.Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold);
-            label9.Location = new Point(810, 127);
+            label9.Location = new Point(810, 120);
             label9.Margin = new Padding(4, 0, 4, 0);
             label9.Name = "label9";
             label9.Size = new Size(130, 28);
@@ -295,7 +296,7 @@
             // cmbFilterPatient
             // 
             cmbFilterPatient.FormattingEnabled = true;
-            cmbFilterPatient.Location = new Point(948, 169);
+            cmbFilterPatient.Location = new Point(948, 160);
             cmbFilterPatient.Name = "cmbFilterPatient";
             cmbFilterPatient.Size = new Size(200, 28);
             cmbFilterPatient.TabIndex = 52;
@@ -304,7 +305,7 @@
             // 
             label10.AutoSize = true;
             label10.Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold);
-            label10.Location = new Point(810, 169);
+            label10.Location = new Point(810, 160);
             label10.Margin = new Padding(4, 0, 4, 0);
             label10.Name = "label10";
             label10.Size = new Size(129, 28);
@@ -313,7 +314,7 @@
             // 
             // dtpFilterDate
             // 
-            dtpFilterDate.Location = new Point(948, 214);
+            dtpFilterDate.Location = new Point(948, 201);
             dtpFilterDate.Name = "dtpFilterDate";
             dtpFilterDate.Size = new Size(200, 27);
             dtpFilterDate.TabIndex = 54;
@@ -322,7 +323,7 @@
             // 
             label11.AutoSize = true;
             label11.Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold);
-            label11.Location = new Point(810, 213);
+            label11.Location = new Point(810, 200);
             label11.Margin = new Padding(4, 0, 4, 0);
             label11.Name = "label11";
             label11.Size = new Size(116, 28);
@@ -333,7 +334,7 @@
             // 
             btnFilterAppointments.BackColor = Color.LightGray;
             btnFilterAppointments.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold);
-            btnFilterAppointments.Location = new Point(810, 256);
+            btnFilterAppointments.Location = new Point(810, 240);
             btnFilterAppointments.Name = "btnFilterAppointments";
             btnFilterAppointments.Size = new Size(160, 40);
             btnFilterAppointments.TabIndex = 56;
@@ -345,7 +346,7 @@
             // 
             btnClearFilter.BackColor = Color.LightGray;
             btnClearFilter.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold);
-            btnClearFilter.Location = new Point(988, 256);
+            btnClearFilter.Location = new Point(988, 240);
             btnClearFilter.Name = "btnClearFilter";
             btnClearFilter.Size = new Size(160, 40);
             btnClearFilter.TabIndex = 57;
@@ -353,12 +354,24 @@
             btnClearFilter.UseVisualStyleBackColor = false;
             btnClearFilter.Click += btnClearFilter_Click;
             // 
+            // lblFilterSectionHeader
+            // 
+            lblFilterSectionHeader.AutoSize = true;
+            lblFilterSectionHeader.Font = new Font("Segoe UI", 16.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            lblFilterSectionHeader.Location = new Point(810, 80);
+            lblFilterSectionHeader.Margin = new Padding(4, 0, 4, 0);
+            lblFilterSectionHeader.Name = "lblFilterSectionHeader";
+            lblFilterSectionHeader.Size = new Size(244, 38);
+            lblFilterSectionHeader.TabIndex = 58;
+            lblFilterSectionHeader.Text = "Filter Options";
+            // 
             // AppointmentForm
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.Linen;
             ClientSize = new Size(1182, 753);
+            Controls.Add(lblFilterSectionHeader);
             Controls.Add(btnClearFilter);
             Controls.Add(btnFilterAppointments);
             Controls.Add(label11);
@@ -428,5 +441,6 @@
         private Label label11;
         private Button btnFilterAppointments;
         private Button btnClearFilter;
+        private Label lblFilterSectionHeader;
     }
 }
