@@ -34,20 +34,14 @@
             txtPhoneNumber = new TextBox();
             label6 = new Label();
             txtFullName = new TextBox();
-            txtPassword = new TextBox();
             txtReceptionistID = new TextBox();
             label5 = new Label();
             label4 = new Label();
-            label3 = new Label();
-            label2 = new Label();
-            txtUsername = new TextBox();
-            sqlCommand1 = new Microsoft.Data.SqlClient.SqlCommand();
             dataGridViewReceptionists = new DataGridView();
             btnAddRec = new Button();
             btnEditRec = new Button();
             btnRemoveRec = new Button();
             btnNewRec = new Button();
-            chkShowPassword = new CheckBox();
             panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)dataGridViewReceptionists).BeginInit();
             SuspendLayout();
@@ -99,13 +93,6 @@
             txtFullName.Size = new Size(516, 27);
             txtFullName.TabIndex = 23;
             // 
-            // txtPassword
-            // 
-            txtPassword.Location = new Point(218, 254);
-            txtPassword.Name = "txtPassword";
-            txtPassword.Size = new Size(359, 27);
-            txtPassword.TabIndex = 22;
-            // 
             // txtReceptionistID
             // 
             txtReceptionistID.Location = new Point(218, 85);
@@ -136,67 +123,33 @@
             label4.TabIndex = 19;
             label4.Text = "Full Name : ";
             // 
-            // label3
-            // 
-            label3.AutoSize = true;
-            label3.Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold);
-            label3.Location = new Point(63, 212);
-            label3.Margin = new Padding(4, 0, 4, 0);
-            label3.Name = "label3";
-            label3.Size = new Size(121, 28);
-            label3.TabIndex = 18;
-            label3.Text = "Username : ";
-            // 
-            // label2
-            // 
-            label2.AutoSize = true;
-            label2.Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold);
-            label2.Location = new Point(63, 253);
-            label2.Margin = new Padding(4, 0, 4, 0);
-            label2.Name = "label2";
-            label2.Size = new Size(114, 28);
-            label2.TabIndex = 17;
-            label2.Text = "Password : ";
-            // 
-            // txtUsername
-            // 
-            txtUsername.Location = new Point(218, 212);
-            txtUsername.Name = "txtUsername";
-            txtUsername.Size = new Size(516, 27);
-            txtUsername.TabIndex = 26;
-            // 
-            // sqlCommand1
-            // 
-            sqlCommand1.CommandTimeout = 30;
-            sqlCommand1.EnableOptimizedParameterBinding = false;
-            // 
             // dataGridViewReceptionists
             // 
             dataGridViewReceptionists.AllowUserToOrderColumns = true;
             dataGridViewCellStyle1.Alignment = DataGridViewContentAlignment.MiddleLeft;
             dataGridViewCellStyle1.BackColor = SystemColors.Control;
-            dataGridViewCellStyle1.Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            dataGridViewCellStyle1.Font = new Font("Segoe UI", 9F);
             dataGridViewCellStyle1.ForeColor = SystemColors.WindowText;
             dataGridViewCellStyle1.SelectionBackColor = SystemColors.Highlight;
             dataGridViewCellStyle1.SelectionForeColor = SystemColors.HighlightText;
             dataGridViewCellStyle1.WrapMode = DataGridViewTriState.True;
             dataGridViewReceptionists.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
             dataGridViewReceptionists.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridViewReceptionists.Location = new Point(63, 302);
+            dataGridViewReceptionists.Location = new Point(63, 220);
             dataGridViewReceptionists.Name = "dataGridViewReceptionists";
             dataGridViewReceptionists.RowHeadersWidth = 51;
-            dataGridViewReceptionists.Size = new Size(671, 246);
+            dataGridViewReceptionists.Size = new Size(671, 320);
             dataGridViewReceptionists.TabIndex = 27;
-            dataGridViewReceptionists.CellContentClick += dataGridViewReceptionists_CellContentClick;
+            dataGridViewReceptionists.CellClick += dataGridViewReceptionists_CellContentClick;
             // 
             // btnAddRec
             // 
             btnAddRec.BackColor = Color.BurlyWood;
             btnAddRec.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold);
-            btnAddRec.Location = new Point(279, 564);
+            btnAddRec.Location = new Point(63, 564);
             btnAddRec.Name = "btnAddRec";
             btnAddRec.Size = new Size(124, 56);
-            btnAddRec.TabIndex = 31;
+            btnAddRec.TabIndex = 28;
             btnAddRec.Text = "Add Receptionist";
             btnAddRec.UseVisualStyleBackColor = false;
             btnAddRec.Click += btnAddRec_Click;
@@ -205,10 +158,10 @@
             // 
             btnEditRec.BackColor = Color.BurlyWood;
             btnEditRec.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold);
-            btnEditRec.Location = new Point(421, 564);
+            btnEditRec.Location = new Point(310, 564);
             btnEditRec.Name = "btnEditRec";
             btnEditRec.Size = new Size(124, 56);
-            btnEditRec.TabIndex = 30;
+            btnEditRec.TabIndex = 29;
             btnEditRec.Text = "Edit Receptionist";
             btnEditRec.UseVisualStyleBackColor = false;
             btnEditRec.Click += btnEditRec_Click;
@@ -237,40 +190,23 @@
             btnNewRec.UseVisualStyleBackColor = false;
             btnNewRec.Click += btnNewRec_Click;
             // 
-            // chkShowPassword
-            // 
-            chkShowPassword.AutoSize = true;
-            chkShowPassword.Font = new Font("Segoe UI Semibold", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            chkShowPassword.Location = new Point(583, 253);
-            chkShowPassword.Name = "chkShowPassword";
-            chkShowPassword.Size = new Size(151, 27);
-            chkShowPassword.TabIndex = 32;
-            chkShowPassword.Text = "Show Password";
-            chkShowPassword.UseVisualStyleBackColor = true;
-            chkShowPassword.CheckedChanged += chkShowPassword_CheckedChanged;
-            // 
             // ReceptionistForm
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.Linen;
             ClientSize = new Size(800, 636);
-            Controls.Add(chkShowPassword);
             Controls.Add(btnAddRec);
             Controls.Add(btnEditRec);
             Controls.Add(btnRemoveRec);
             Controls.Add(btnNewRec);
             Controls.Add(dataGridViewReceptionists);
-            Controls.Add(txtUsername);
             Controls.Add(txtPhoneNumber);
             Controls.Add(label6);
             Controls.Add(txtFullName);
-            Controls.Add(txtPassword);
             Controls.Add(txtReceptionistID);
             Controls.Add(label5);
             Controls.Add(label4);
-            Controls.Add(label3);
-            Controls.Add(label2);
             Controls.Add(panel1);
             Name = "ReceptionistForm";
             StartPosition = FormStartPosition.CenterScreen;
@@ -289,19 +225,13 @@
         private TextBox txtPhoneNumber;
         private Label label6;
         private TextBox txtFullName;
-        private TextBox txtPassword;
         private TextBox txtReceptionistID;
         private Label label5;
         private Label label4;
-        private Label label3;
-        private Label label2;
-        private TextBox txtUsername;
-        private Microsoft.Data.SqlClient.SqlCommand sqlCommand1;
         private DataGridView dataGridViewReceptionists;
         private Button btnAddRec;
         private Button btnEditRec;
         private Button btnRemoveRec;
         private Button btnNewRec;
-        private CheckBox chkShowPassword;
     }
 }

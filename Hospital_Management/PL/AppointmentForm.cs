@@ -59,7 +59,7 @@ namespace Hospital_Management.PL
                 cmbCreatedBy.ValueMember = "ReceptionistID";
             }
         }
-        private void dataGridViewAppointments_CellClick(object sender, DataGridViewCellEventArgs e)
+        private void dataGridViewAppointments_CellClick(object? sender, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex >= 0)
             {
@@ -114,13 +114,20 @@ namespace Hospital_Management.PL
             }
         }
 
-        private void cmbSelectPatient_SelectedIndexChanged(object sender, EventArgs e)
+        private void cmbSelectPatient_SelectedIndexChanged(object? sender, EventArgs e)
         {
             if (cmbSelectPatient.SelectedItem is Patient selectedPatient)
             {
                 cmbAssignedTo.Text = selectedPatient.AssignedDoctor;
                 txtAge.Text = selectedPatient.Age.ToString();
                 txtGender.Text = selectedPatient.Gender;
+            }
+            else
+            {
+                // Handle the case where SelectedItem is null or not a Patient object
+                cmbAssignedTo.Text = string.Empty;
+                txtAge.Text = string.Empty;
+                txtGender.Text = string.Empty;
             }
         }
         private void ClearForm()
@@ -132,7 +139,7 @@ namespace Hospital_Management.PL
             cmbCreatedBy.SelectedIndex = -1;
             dateTimePickerScheduled.Value = DateTime.Now;
         }
-        private void btnAddRec_Click(object sender, EventArgs e)
+        private void btnAddRec_Click(object? sender, EventArgs e)
         {
             if (cmbSelectPatient.SelectedItem == null)
             {
@@ -158,14 +165,9 @@ namespace Hospital_Management.PL
                 return;
             }
 
-            if (dateTimePickerScheduled.Value == null)
-            {
-                MessageBox.Show("Please select a scheduled date!");
-                return;
-            }
             using (var context = new HospitalContext())
             {
-                int selectedPatientId = (int)cmbSelectPatient.SelectedValue;
+                int selectedPatientId = Convert.ToInt32(cmbSelectPatient.SelectedValue);
                 DateTime selectedDate = dateTimePickerScheduled.Value.Date;
 
                 bool appointmentExists = context.Appointments
@@ -178,11 +180,11 @@ namespace Hospital_Management.PL
                 }
                 var appointment = new Appointment
                 {
-                    PatientID = (int)cmbSelectPatient.SelectedValue,
-                    DoctorID = (int)cmbAssignedTo.SelectedValue,
+                    PatientID = Convert.ToInt32(cmbSelectPatient.SelectedValue),
+                    DoctorID = Convert.ToInt32(cmbAssignedTo.SelectedValue),
                     Age = int.Parse(txtAge.Text),
                     Gender = txtGender.Text,
-                    ReceptionistID = (int)cmbCreatedBy.SelectedValue,
+                    ReceptionistID = Convert.ToInt32(cmbCreatedBy.SelectedValue),
                     CreatedAt = DateTime.Now,
                     ScheduledDate = dateTimePickerScheduled.Value,
                 };
@@ -194,7 +196,7 @@ namespace Hospital_Management.PL
             }
         }
 
-        private void btnRemoveRec_Click(object sender, EventArgs e)
+        private void btnRemoveRec_Click(object? sender, EventArgs e)
         {
             if (dataGridViewAppointments.SelectedRows.Count > 0)
             {
@@ -206,7 +208,7 @@ namespace Hospital_Management.PL
 
                 if (result == DialogResult.Yes)
                 {
-                    int appointmentId = Convert.ToInt32(dataGridViewAppointments.SelectedRows[0].Cells["AppointmentID"].Value);
+                    int appointmentId = Convert.ToInt32(dataGridViewAppointments.SelectedRows[0].Cells["AppointmentID"].Value ?? 0);
 
                     using (var context = new HospitalContext())
                     {
@@ -234,7 +236,7 @@ namespace Hospital_Management.PL
             }
         }
 
-        private void btnNewRec_Click(object sender, EventArgs e)
+        private void btnNewRec_Click(object? sender, EventArgs e)
         {
             cmbSelectPatient.SelectedIndex = -1;
             cmbAssignedTo.SelectedIndex = -1;
@@ -248,44 +250,46 @@ namespace Hospital_Management.PL
             cmbSelectPatient.Focus();
         }
 
-        private void btnEditRec_Click(object sender, EventArgs e)
+        private void btnEditRec_Click(object? sender, EventArgs e)
         {
             if (dataGridViewAppointments.SelectedRows.Count > 0)
             {
-                int appointmentId = Convert.ToInt32(dataGridViewAppointments.SelectedRows[0].Cells["AppointmentID"].Value);
-
+                int appointmentId = Convert.ToInt32(dataGridViewAppointments.SelectedRows[0].Cells["AppointmentID"].Value ?? 0);
                 using (var context = new HospitalContext())
                 {
-                    var appointment = context.Appointments.FirstOrDefault(a => a.AppointmentID == appointmentId);
-
+                    var appointment = context.Appointments.Find(appointmentId);
                     if (appointment != null)
                     {
-                        int selectedPatientID = (int)cmbSelectPatient.SelectedValue;
-
-                        if (selectedPatientID != originalPatientID)
+                        if (cmbSelectPatient.SelectedValue != null)
                         {
-                            MessageBox.Show("You are not allowed to change the patient.");
-                            cmbSelectPatient.SelectedValue = originalPatientID; // Reset to original
-                            return;
+                            appointment.PatientID = Convert.ToInt32(cmbSelectPatient.SelectedValue);
                         }
-
-                        // Continue updating other properties
+                        if (cmbAssignedTo.SelectedValue != null)
+                        {
+                            appointment.DoctorID = Convert.ToInt32(cmbAssignedTo.SelectedValue);
+                        }
                         appointment.Age = int.Parse(txtAge.Text);
                         appointment.Gender = txtGender.Text;
-                        appointment.DoctorID = (int)cmbAssignedTo.SelectedValue;
-                        appointment.ReceptionistID = (int)cmbCreatedBy.SelectedValue;
+                        if (cmbCreatedBy.SelectedValue != null)
+                        {
+                            appointment.ReceptionistID = Convert.ToInt32(cmbCreatedBy.SelectedValue);
+                        }
                         appointment.ScheduledDate = dateTimePickerScheduled.Value;
 
                         context.SaveChanges();
-                        MessageBox.Show("Appointment updated successfully!");
+                        MessageBox.Show("Appointment successfully updated!");
                         LoadAppointmentsToGrid();
                         ClearForm();
+                    }
+                    else
+                    {
+                        MessageBox.Show("Appointment not found in database.");
                     }
                 }
             }
             else
             {
-                MessageBox.Show("Please select an appointment to edit.");
+                MessageBox.Show("Please select an appointment to edit.", "No Appointment Selected", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
         }
     }

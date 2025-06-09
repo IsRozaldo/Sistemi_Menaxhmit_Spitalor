@@ -1,6 +1,6 @@
 ﻿namespace Hospital_Management.PL
 {
-    partial class Doctors
+    partial class DoctorForm
     {
         /// <summary>
         /// Required designer variable.
@@ -258,7 +258,7 @@
             txtFullName.Size = new Size(516, 27);
             txtFullName.TabIndex = 8;
             // 
-            // Doctors
+            // DoctorForm
             // 
             AutoScaleDimensions = new SizeF(11F, 28F);
             AutoScaleMode = AutoScaleMode.Font;
@@ -282,20 +282,15 @@
             Controls.Add(panel1);
             Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold);
             Margin = new Padding(4);
-            Name = "Doctors";
+            Name = "DoctorForm";
             StartPosition = FormStartPosition.CenterScreen;
             Text = "Doctors";
-            Load += Doctors_Load_1;
+            Load += DoctorForm_Load;
             panel1.ResumeLayout(false);
             panel1.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)dataGridViewDoctors).EndInit();
             ResumeLayout(false);
             PerformLayout();
-        }
-
-        private void Doctors_Load(object sender, EventArgs e)
-        {
-            Show();
         }
 
         #endregion

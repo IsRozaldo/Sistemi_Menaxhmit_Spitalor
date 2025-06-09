@@ -4,6 +4,7 @@ using Hospital_Management.Core.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Hospital_Management.Migrations
 {
     [DbContext(typeof(HospitalContext))]
-    partial class HospitalContextModelSnapshot : ModelSnapshot
+    [Migration("20250609111512_AddRoleToReceptionist")]
+    partial class AddRoleToReceptionist
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,42 +24,6 @@ namespace Hospital_Management.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
-
-            modelBuilder.Entity("Hospital_Management.Core.Entities.Admin", b =>
-                {
-                    b.Property<int>("AdminID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("AdminID"));
-
-                    b.Property<string>("FullName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("PhoneNumber")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("UserID")
-                        .HasColumnType("int");
-
-                    b.HasKey("AdminID");
-
-                    b.HasIndex("UserID")
-                        .IsUnique();
-
-                    b.ToTable("Admins");
-
-                    b.HasData(
-                        new
-                        {
-                            AdminID = 1,
-                            FullName = "Arlind Krasniqi",
-                            PhoneNumber = "1234567890",
-                            UserID = 1
-                        });
-                });
 
             modelBuilder.Entity("Hospital_Management.Core.Entities.Appointment", b =>
                 {
@@ -176,49 +143,6 @@ namespace Hospital_Management.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("PhoneNumber")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("UserID")
-                        .HasColumnType("int");
-
-                    b.HasKey("ReceptionistID");
-
-                    b.HasIndex("UserID")
-                        .IsUnique();
-
-                    b.ToTable("Receptionists");
-
-                    b.HasData(
-                        new
-                        {
-                            ReceptionistID = 1,
-                            FullName = "Dardan Hoxha",
-                            PhoneNumber = "9876543210",
-                            UserID = 2
-                        },
-                        new
-                        {
-                            ReceptionistID = 2,
-                            FullName = "Ermal Berisha",
-                            PhoneNumber = "5555555555",
-                            UserID = 3
-                        });
-                });
-
-            modelBuilder.Entity("Hospital_Management.Core.Entities.User", b =>
-                {
-                    b.Property<int>("UserID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("UserID"));
-
-                    b.Property<string>("FullName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("Password")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -235,49 +159,9 @@ namespace Hospital_Management.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("UserID");
+                    b.HasKey("ReceptionistID");
 
-                    b.ToTable("Users");
-
-                    b.HasData(
-                        new
-                        {
-                            UserID = 1,
-                            FullName = "Arlind Krasniqi",
-                            Password = "UdveFgzgF8aPmz9H0Pjn73Jtmi+xbFms9WimaqP8ny4=",
-                            PhoneNumber = "1234567890",
-                            Role = "Admin",
-                            Username = "Arlind"
-                        },
-                        new
-                        {
-                            UserID = 2,
-                            FullName = "Dardan Hoxha",
-                            Password = "dhlTxDIicEh9sehdrRb2CnDbwGZeE3IL8RCRc6oULNs=",
-                            PhoneNumber = "9876543210",
-                            Role = "Receptionist",
-                            Username = "Dardan"
-                        },
-                        new
-                        {
-                            UserID = 3,
-                            FullName = "Ermal Berisha",
-                            Password = "oIKDar/IMv5mWrze5EMPA8Fq7U/zQqAlG4n/w6ArEMs=",
-                            PhoneNumber = "5555555555",
-                            Role = "Receptionist",
-                            Username = "Ermal"
-                        });
-                });
-
-            modelBuilder.Entity("Hospital_Management.Core.Entities.Admin", b =>
-                {
-                    b.HasOne("Hospital_Management.Core.Entities.User", "User")
-                        .WithOne()
-                        .HasForeignKey("Hospital_Management.Core.Entities.Admin", "UserID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
+                    b.ToTable("Receptionists");
                 });
 
             modelBuilder.Entity("Hospital_Management.Core.Entities.Appointment", b =>
@@ -305,17 +189,6 @@ namespace Hospital_Management.Migrations
                     b.Navigation("Patient");
 
                     b.Navigation("Receptionist");
-                });
-
-            modelBuilder.Entity("Hospital_Management.Core.Entities.Receptionist", b =>
-                {
-                    b.HasOne("Hospital_Management.Core.Entities.User", "User")
-                        .WithOne()
-                        .HasForeignKey("Hospital_Management.Core.Entities.Receptionist", "UserID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Hospital_Management.Core.Entities.Doctor", b =>

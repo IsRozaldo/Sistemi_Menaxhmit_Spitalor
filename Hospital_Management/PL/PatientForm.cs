@@ -16,7 +16,7 @@ namespace Hospital_Management.PL
 {
     public partial class PatientForm : Form
     {
-        private Patient originalPatient;
+        private Patient? originalPatient;
         public PatientForm()
         {
             InitializeComponent();
@@ -27,7 +27,7 @@ namespace Hospital_Management.PL
             cmbAssignedDoctor.DropDownStyle = ComboBoxStyle.DropDownList;
             this.Load += new System.EventHandler(this.PatientForm_Load);
         }
-        private void TxtPhoneNumber_KeyPress(object sender, KeyPressEventArgs e)
+        private void TxtPhoneNumber_KeyPress(object? sender, KeyPressEventArgs e)
         {
             if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar))
             {
@@ -40,7 +40,7 @@ namespace Hospital_Management.PL
                 e.Handled = true;
             }
         }
-        private void txtAge_KeyPress(object sender, KeyPressEventArgs e)
+        private void txtAge_KeyPress(object? sender, KeyPressEventArgs e)
         {
             // Allow only digits and control keys (like backspace)
             if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar))
@@ -61,7 +61,7 @@ namespace Hospital_Management.PL
             }
         }
 
-        private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        private void dataGridView1_CellContentClick(object? sender, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex >= 0)
             {
@@ -70,12 +70,12 @@ namespace Hospital_Management.PL
                 originalPatient = new Patient
                 {
                     Id = Convert.ToInt32(row.Cells["Id"].Value),
-                    FullName = row.Cells["FullName"].Value.ToString(),
+                    FullName = row.Cells["FullName"].Value?.ToString() ?? string.Empty,
                     Age = Convert.ToInt32(row.Cells["Age"].Value),
-                    Gender = row.Cells["Gender"].Value.ToString(),
-                    PhoneNumber = row.Cells["PhoneNumber"].Value.ToString(),
-                    AssignedDoctor = row.Cells["AssignedDoctor"].Value.ToString(),
-                    Description = row.Cells["Description"].Value.ToString()
+                    Gender = row.Cells["Gender"].Value?.ToString() ?? string.Empty,
+                    PhoneNumber = row.Cells["PhoneNumber"].Value?.ToString() ?? string.Empty,
+                    AssignedDoctor = row.Cells["AssignedDoctor"].Value?.ToString() ?? string.Empty,
+                    Description = row.Cells["Description"].Value?.ToString() ?? string.Empty
                 };
 
                 txtPatientID.Text = originalPatient.Id.ToString();
@@ -88,7 +88,7 @@ namespace Hospital_Management.PL
             }
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        private void button1_Click(object? sender, EventArgs e)
         {
             if (!string.IsNullOrWhiteSpace(txtPatientID.Text))
             {
@@ -192,7 +192,7 @@ namespace Hospital_Management.PL
                 dataGridViewPatients.Columns["Id"].Visible = false;
             }
         }
-        private void PatientForm_Load(object sender, EventArgs e)
+        private void PatientForm_Load(object? sender, EventArgs e)
         {
             LoadPatients();
         }
@@ -207,9 +207,9 @@ namespace Hospital_Management.PL
             txtDescription.Clear();
         }
 
-        private void btnEditPatient_Click(object sender, EventArgs e)
+        private void btnEditPatient_Click(object? sender, EventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(txtPatientID.Text))
+            if (string.IsNullOrWhiteSpace(txtPatientID.Text) || originalPatient == null)
             {
                 MessageBox.Show("Please select a patient to edit.");
                 return;
@@ -242,7 +242,7 @@ namespace Hospital_Management.PL
 
             bool isChanged = txtFullName.Text != originalPatient.FullName ||
                             txtAge.Text != originalPatient.Age.ToString() ||
-                            cmbGender.SelectedItem.ToString() != originalPatient.Gender ||
+                            (cmbGender.SelectedItem?.ToString() ?? string.Empty) != originalPatient.Gender ||
                             txtPhoneNumber.Text != originalPatient.PhoneNumber ||
                             cmbAssignedDoctor.Text != originalPatient.AssignedDoctor ||
                             txtDescription.Text != originalPatient.Description;
@@ -261,11 +261,10 @@ namespace Hospital_Management.PL
                 {
                     patient.FullName = txtFullName.Text;
                     patient.Age = int.Parse(txtAge.Text);
-                    patient.Gender = cmbGender.SelectedItem.ToString();
+                    patient.Gender = cmbGender.SelectedItem?.ToString() ?? string.Empty;
                     patient.PhoneNumber = txtPhoneNumber.Text;
                     patient.AssignedDoctor = cmbAssignedDoctor.Text;
                     patient.Description = txtDescription.Text;
-
 
                     context.SaveChanges();
 
@@ -281,16 +280,21 @@ namespace Hospital_Management.PL
             }
         }
 
-        private void button3_Click(object sender, EventArgs e)
+        private void button3_Click(object? sender, EventArgs e)
         {
-            if (!int.TryParse(txtPatientID.Text, out int patientId))
+            if (string.IsNullOrWhiteSpace(txtPatientID.Text))
             {
-                MessageBox.Show("Please select a patient to delete.");
+                MessageBox.Show("Please select a patient to remove.");
                 return;
             }
 
-            // Optional: Confirm deletion
-            var result = MessageBox.Show("Are you sure you want to delete this patient?",
+            if (!int.TryParse(txtPatientID.Text, out int patientId))
+            {
+                MessageBox.Show("Invalid patient ID.");
+                return;
+            }
+
+            var result = MessageBox.Show("Are you sure you want to remove the patient?",
                                          "Confirm Deletion",
                                          MessageBoxButtons.YesNo,
                                          MessageBoxIcon.Warning);
@@ -306,10 +310,9 @@ namespace Hospital_Management.PL
                         context.Patients.Remove(patient);
                         context.SaveChanges();
 
-                        MessageBox.Show("Patient successfully deleted.");
-
-                        LoadPatients();  // Refresh the DataGridView
-                        ClearInputs();   // Clear the textboxes (optional)
+                        MessageBox.Show("Patient removed successfully.");
+                        LoadPatients();
+                        ClearInputs();
                     }
                     else
                     {
@@ -319,12 +322,12 @@ namespace Hospital_Management.PL
             }
         }
 
-        private void btnNewPatient_Click(object sender, EventArgs e)
+        private void btnNewPatient_Click(object? sender, EventArgs e)
         {
             ClearInputs();
         }
 
-        private void btnRefresh_Click(object sender, EventArgs e)
+        private void btnRefresh_Click(object? sender, EventArgs e)
         {
             LoadDoctorsIntoComboBox();
         }

@@ -15,5 +15,14 @@ namespace Hospital_Management.Core.Entities
         public string PhoneNumber { get; set; }
         public string OfficeNumber { get; set; }
         public ICollection<Appointment> Appointments { get; set; }
+
+        public Doctor()
+        {
+            FullName = string.Empty;
+            Specialty = string.Empty;
+            PhoneNumber = string.Empty;
+            OfficeNumber = string.Empty;
+            Appointments = new List<Appointment>();
+        }
     }
 }

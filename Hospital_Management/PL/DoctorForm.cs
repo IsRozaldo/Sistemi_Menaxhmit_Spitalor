@@ -13,17 +13,16 @@ using Hospital_Management.Core.Entities;
 
 namespace Hospital_Management.PL
 {
-    public partial class Doctors : Form
+    public partial class DoctorForm : Form
     {
-        private Doctor originalDoctor;
-        public Doctors()
+        private Doctor? originalDoctor;
+        public DoctorForm()
         {
             InitializeComponent();
-            this.Load += new System.EventHandler(this.Doctors_Load);
             cmbSpecialty.DropDownStyle = ComboBoxStyle.DropDownList;
         }
 
-        private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        private void dataGridView1_CellContentClick(object? sender, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex >= 0)
             {
@@ -32,10 +31,10 @@ namespace Hospital_Management.PL
                 originalDoctor = new Doctor
                 {
                     DoctorID = Convert.ToInt32(row.Cells["DoctorID"].Value),
-                    FullName = row.Cells["FullName"].Value.ToString(),
-                    Specialty = row.Cells["Specialty"].Value.ToString(),
-                    PhoneNumber = row.Cells["PhoneNumber"].Value.ToString(),
-                    OfficeNumber = row.Cells["OfficeNumber"].Value.ToString()
+                    FullName = row.Cells["FullName"].Value?.ToString() ?? string.Empty,
+                    Specialty = row.Cells["Specialty"].Value?.ToString() ?? string.Empty,
+                    PhoneNumber = row.Cells["PhoneNumber"].Value?.ToString() ?? string.Empty,
+                    OfficeNumber = row.Cells["OfficeNumber"].Value?.ToString() ?? string.Empty
                 };
                 txtDoctorID.Text = originalDoctor.DoctorID.ToString();
                 txtFullName.Text = originalDoctor.FullName;
@@ -45,12 +44,12 @@ namespace Hospital_Management.PL
             }
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        private void button1_Click(object? sender, EventArgs e)
         {
             ClearInputs(); 
         }
 
-        private void button4_Click(object sender, EventArgs e)
+        private void button4_Click(object? sender, EventArgs e)
         {
             if (!string.IsNullOrWhiteSpace(txtDoctorID.Text))
             {
@@ -144,7 +143,7 @@ namespace Hospital_Management.PL
                 dataGridViewDoctors.Columns["DoctorID"].Visible = false;
             }
         }
-        private void Doctors_Load_1(object sender, EventArgs e)
+        private void DoctorForm_Load(object? sender, EventArgs e)
         {
             LoadDoctors(); // Load doctors into the DataGridView when the form loads
         }
@@ -157,7 +156,7 @@ namespace Hospital_Management.PL
             cmbSpecialty.SelectedIndex = -1;
         }
 
-        private void button2_Click(object sender, EventArgs e)
+        private void button2_Click(object? sender, EventArgs e)
         {
             if (!int.TryParse(txtDoctorID.Text, out int doctorId))
             {
@@ -195,9 +194,9 @@ namespace Hospital_Management.PL
             }
         }
 
-        private void button3_Click(object sender, EventArgs e)
+        private void button3_Click(object? sender, EventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(txtDoctorID.Text))
+            if (string.IsNullOrWhiteSpace(txtDoctorID.Text) || originalDoctor == null)
             {
                 MessageBox.Show("Please select a doctor to edit.");
                 return;
@@ -261,7 +260,7 @@ namespace Hospital_Management.PL
                 }
                 else
                 {
-                    MessageBox.Show("Doctor was not found in database.");
+                    MessageBox.Show("Doctor not found in database.");
                 }
             }
         }

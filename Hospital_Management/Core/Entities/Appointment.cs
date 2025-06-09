@@ -24,5 +24,13 @@ namespace Hospital_Management.Core.Entities
         public string Gender { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime ScheduledDate { get; set; }
+
+        public Appointment()
+        {
+            Patient = null!;
+            Doctor = null!;
+            Receptionist = null!;
+            Gender = string.Empty;
+        }
     }
 }

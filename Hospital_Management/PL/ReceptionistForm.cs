@@ -15,16 +15,37 @@ namespace Hospital_Management.PL
 {
     public partial class ReceptionistForm : Form
     {
-        private Receptionist originalReceptionist;
-        public ReceptionistForm()
+        private Receptionist? originalReceptionist;
+        private string userRole;
+
+        public ReceptionistForm(string role)
         {
             InitializeComponent();
+            userRole = role;
             LoadReceptionists();
+            SetButtonAccess();
+        }
+
+        private void SetButtonAccess()
+        {
+            // Only Admin can add, edit, or remove receptionists
+            bool isAdmin = userRole == "Admin";
+            btnAddRec.Enabled = isAdmin;
+            btnEditRec.Enabled = isAdmin;
+            btnRemoveRec.Enabled = isAdmin;
+            btnNewRec.Enabled = isAdmin;
+
+            // If not admin, make the form read-only
+            if (!isAdmin)
+            {
+                txtFullName.ReadOnly = true;
+                txtPhoneNumber.ReadOnly = true;
+                dataGridViewReceptionists.ReadOnly = true;
+            }
         }
 
         private void dataGridViewReceptionists_CellContentClick(object sender, DataGridViewCellEventArgs e)
         {
-
             if (e.RowIndex >= 0)
             {
                 DataGridViewRow row = dataGridViewReceptionists.Rows[e.RowIndex];
@@ -32,15 +53,13 @@ namespace Hospital_Management.PL
                 originalReceptionist = new Receptionist
                 {
                     ReceptionistID = Convert.ToInt32(row.Cells["ReceptionistID"].Value),
-                    FullName = row.Cells["FullName"].Value.ToString(),
-                    Username = row.Cells["Username"].Value.ToString(),
-                    Password = row.Cells["Password"].Value.ToString(),
-                    PhoneNumber = row.Cells["PhoneNumber"].Value.ToString()
+                    FullName = row.Cells["FullName"].Value?.ToString() ?? string.Empty,
+                    PhoneNumber = row.Cells["PhoneNumber"].Value?.ToString() ?? string.Empty,
+                    UserID = Convert.ToInt32(row.Cells["UserID"].Value)
                 };
+
                 txtReceptionistID.Text = originalReceptionist.ReceptionistID.ToString();
                 txtFullName.Text = originalReceptionist.FullName;
-                txtUsername.Text = originalReceptionist.Username;
-                txtPassword.Text = originalReceptionist.Password;
                 txtPhoneNumber.Text = originalReceptionist.PhoneNumber;
             }
         }
@@ -71,66 +90,40 @@ namespace Hospital_Management.PL
                 MessageBox.Show("Phone number must have exactly 10 digits.", "Invalid Phone", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
-            string userName = txtUsername.Text.Trim();
 
-            if (!Regex.IsMatch(userName, @"^[a-zA-Z]{1,10}$"))
-            {
-                MessageBox.Show("Username must contain only letters (max 10 characters, no numbers or symbols).", "Invalid Username", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-
-            string Password = txtPassword.Text.Trim();
-
-            if (!Regex.IsMatch(Password, @"^[a-zA-Z0-9]{1,12}$"))
-            {
-                MessageBox.Show("Password must contain only letters and numbers (max 12 characters, no symbols).", "Invalid Password", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-            // Get form values
-            string fullName = txtFullName.Text.Trim();
-            string username = txtUsername.Text.Trim();
-            string password = txtPassword.Text.Trim();
-            string phoneNumber = txtPhoneNumber.Text.Trim();
-
-            if (string.IsNullOrWhiteSpace(fullName) || string.IsNullOrWhiteSpace(phoneNumber) || string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
-            {
-                MessageBox.Show("Please fill out all required fields.");
-                return;
-            }
             using (var context = new HospitalContext())
             {
-                // Check if a receptionist with the same attributes already exists
-                bool exists = context.Receptionists.Any(rec =>
-                    rec.FullName == fullName &&
-                    rec.Username == username &&
-                    rec.Password == password &&
-                    rec.PhoneNumber == phoneNumber
-                );
-
-                if (exists)
+                // Create new user first
+                var user = new User
                 {
-                    MessageBox.Show("A receptionist with these details already exists.", "Duplicate Entry", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    return;
-                }
+                    Username = txtFullName.Text.Trim().Split(' ')[0], // Use first name as username
+                    Password = User.HashPassword("Welcome123"), // Default password
+                    Role = "Receptionist",
+                    FullName = txtFullName.Text.Trim(),
+                    PhoneNumber = txtPhoneNumber.Text.Trim()
+                };
 
-                // Add new patient
+                context.Users.Add(user);
+                context.SaveChanges();
+
+                // Create new receptionist
                 var receptionist = new Receptionist
                 {
-                    FullName = fullName,
-                    Username = username,
-                    Password = password,
-                    PhoneNumber = phoneNumber
+                    FullName = txtFullName.Text.Trim(),
+                    PhoneNumber = txtPhoneNumber.Text.Trim(),
+                    UserID = user.UserID
                 };
 
                 context.Receptionists.Add(receptionist);
                 context.SaveChanges();
 
-                MessageBox.Show("Receptionist added successfully!");
+                MessageBox.Show("Receptionist added successfully! Default password is 'Welcome123'", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
                 ClearInputs();
                 LoadReceptionists();
             }
         }
+
         private void LoadReceptionists()
         {
             using (var context = new HospitalContext())
@@ -140,9 +133,8 @@ namespace Hospital_Management.PL
                     {
                         rec.ReceptionistID,
                         rec.FullName,
-                        rec.Username,
-                        rec.Password,
-                        rec.PhoneNumber
+                        rec.PhoneNumber,
+                        rec.UserID
                     }).ToList();
                 dataGridViewReceptionists.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             }
@@ -150,64 +142,32 @@ namespace Hospital_Management.PL
             {
                 dataGridViewReceptionists.Columns["ReceptionistID"].Visible = false;
             }
+            if (dataGridViewReceptionists.Columns["UserID"] != null)
+            {
+                dataGridViewReceptionists.Columns["UserID"].Visible = false;
+            }
         }
+
         private void ReceptionistForm_Load(object sender, EventArgs e)
         {
             LoadReceptionists();
         }
+
         private void ClearInputs()
         {
             txtReceptionistID.Clear();
             txtFullName.Clear();
-            txtUsername.Clear();
-            txtPassword.Clear();
             txtPhoneNumber.Clear();
         }
+
         private void btnNewRec_Click(object sender, EventArgs e)
         {
             ClearInputs();
         }
 
-        private void btnRemoveRec_Click(object sender, EventArgs e)
-        {
-            if (!int.TryParse(txtReceptionistID.Text, out int receptionistId))
-            {
-                MessageBox.Show("Please select a receptionist to delete.");
-                return;
-            }
-            // Optional: Confirm deletion
-            var result = MessageBox.Show("Are you sure you want to delete this receptionist?",
-                                         "Confirm Deletion",
-                                         MessageBoxButtons.YesNo,
-                                         MessageBoxIcon.Warning);
-
-            if (result == DialogResult.Yes)
-            {
-                using (var context = new HospitalContext())
-                {
-                    var receptionist = context.Receptionists.Find(receptionistId);
-
-                    if (receptionist != null)
-                    {
-                        context.Receptionists.Remove(receptionist);
-                        context.SaveChanges();
-
-                        MessageBox.Show("Receptionist successfully deleted.");
-
-                        LoadReceptionists();  // Refresh the DataGridView
-                        ClearInputs();   // Clear the textboxes 
-                    }
-                    else
-                    {
-                        MessageBox.Show("Receptionist not found.");
-                    }
-                }
-            }
-        }
-
         private void btnEditRec_Click(object sender, EventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(txtReceptionistID.Text))
+            if (string.IsNullOrWhiteSpace(txtReceptionistID.Text) || originalReceptionist == null)
             {
                 MessageBox.Show("Please select a receptionist to edit.");
                 return;
@@ -237,41 +197,27 @@ namespace Hospital_Management.PL
                 MessageBox.Show("Phone number must have exactly 10 digits.", "Invalid Phone", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
-            string userName = txtUsername.Text.Trim();
-
-            if (!Regex.IsMatch(userName, @"^[a-zA-Z]{1,10}$"))
-            {
-                MessageBox.Show("Username must contain only letters (max 10 characters, no numbers or symbols).", "Invalid Username", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-
-            string Password = txtPassword.Text.Trim();
-
-            if (!Regex.IsMatch(Password, @"^[a-zA-Z0-9]{1,12}$"))
-            {
-                MessageBox.Show("Password must contain only letters and numbers (max 12 characters, no symbols).", "Invalid Password", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
 
             bool isChanged = txtFullName.Text != originalReceptionist.FullName ||
-                             txtUsername.Text != originalReceptionist.Username ||
-                             txtPassword.Text != originalReceptionist.Password ||
-                             txtPhoneNumber.Text != originalReceptionist.PhoneNumber;
+                            txtPhoneNumber.Text != originalReceptionist.PhoneNumber;
+
             if (!isChanged)
             {
                 MessageBox.Show("You haven't changed any attributes.", "No Changes", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
+
             using (var context = new HospitalContext())
             {
                 var receptionist = context.Receptionists.Find(originalReceptionist.ReceptionistID);
+                var user = context.Users.Find(receptionist?.UserID);
 
-                if (receptionist != null)
+                if (receptionist != null && user != null)
                 {
                     receptionist.FullName = txtFullName.Text.Trim();
-                    receptionist.Username = txtUsername.Text.Trim();
-                    receptionist.Password = txtPassword.Text.Trim();
                     receptionist.PhoneNumber = txtPhoneNumber.Text.Trim();
+                    user.FullName = txtFullName.Text.Trim();
+                    user.PhoneNumber = txtPhoneNumber.Text.Trim();
 
                     context.SaveChanges();
 
@@ -287,9 +233,43 @@ namespace Hospital_Management.PL
             }
         }
 
-        private void chkShowPassword_CheckedChanged(object sender, EventArgs e)
+        private void btnRemoveRec_Click(object sender, EventArgs e)
         {
-            txtPassword.UseSystemPasswordChar = !chkShowPassword.Checked;
+            if (string.IsNullOrWhiteSpace(txtReceptionistID.Text) || originalReceptionist == null)
+            {
+                MessageBox.Show("Please select a receptionist to remove.");
+                return;
+            }
+
+            if (!int.TryParse(txtReceptionistID.Text, out int Id))
+            {
+                MessageBox.Show("Invalid receptionist ID.");
+                return;
+            }
+
+            using (var context = new HospitalContext())
+            {
+                var receptionist = context.Receptionists.Find(Id);
+                if (receptionist != null)
+                {
+                    var user = context.Users.Find(receptionist.UserID);
+                    if (user != null)
+                    {
+                        context.Receptionists.Remove(receptionist);
+                        context.Users.Remove(user);
+                        context.SaveChanges();
+
+                        MessageBox.Show("Receptionist successfully removed!");
+
+                        LoadReceptionists();
+                        ClearInputs();
+                    }
+                }
+                else
+                {
+                    MessageBox.Show("Receptionist not found in database.");
+                }
+            }
         }
     }
 }
