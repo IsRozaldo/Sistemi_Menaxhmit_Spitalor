@@ -25,6 +25,8 @@ namespace Hospital_Management.Core.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            base.OnModelCreating(modelBuilder);
+
             // Configure relationships
             modelBuilder.Entity<Appointment>()
                 .HasOne(a => a.Patient)
@@ -130,6 +132,19 @@ namespace Hospital_Management.Core.Data
             };
 
             modelBuilder.Entity<Service>().HasData(services);
+
+            // Add unique constraints for phone numbers
+            modelBuilder.Entity<Patient>()
+                .HasIndex(p => p.PhoneNumber)
+                .IsUnique();
+
+            modelBuilder.Entity<Doctor>()
+                .HasIndex(d => d.PhoneNumber)
+                .IsUnique();
+
+            modelBuilder.Entity<Receptionist>()
+                .HasIndex(r => r.PhoneNumber)
+                .IsUnique();
         }
     }
 }

@@ -114,7 +114,7 @@
             // button7
             // 
             button7.Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold);
-            button7.Location = new Point(12, 455);
+            button7.Location = new Point(12, 453);
             button7.Name = "button7";
             button7.Size = new Size(285, 64);
             button7.TabIndex = 7;
@@ -124,7 +124,7 @@
             // button5
             // 
             button5.Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold);
-            button5.Location = new Point(12, 375);
+            button5.Location = new Point(12, 219);
             button5.Name = "button5";
             button5.Size = new Size(285, 64);
             button5.TabIndex = 5;
@@ -135,7 +135,7 @@
             // btnAppointment
             // 
             btnAppointment.Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold);
-            btnAppointment.Location = new Point(12, 297);
+            btnAppointment.Location = new Point(12, 141);
             btnAppointment.Name = "btnAppointment";
             btnAppointment.Size = new Size(285, 64);
             btnAppointment.TabIndex = 4;
@@ -146,7 +146,7 @@
             // btnReceptionists
             // 
             btnReceptionists.Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold);
-            btnReceptionists.Location = new Point(12, 219);
+            btnReceptionists.Location = new Point(12, 375);
             btnReceptionists.Name = "btnReceptionists";
             btnReceptionists.Size = new Size(285, 64);
             btnReceptionists.TabIndex = 3;
@@ -157,7 +157,7 @@
             // button2
             // 
             button2.Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold);
-            button2.Location = new Point(12, 141);
+            button2.Location = new Point(12, 297);
             button2.Name = "button2";
             button2.Size = new Size(285, 64);
             button2.TabIndex = 2;
@@ -201,7 +201,7 @@
             // btnLogOut
             // 
             btnLogOut.Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold);
-            btnLogOut.Location = new Point(12, 536);
+            btnLogOut.Location = new Point(12, 453);
             btnLogOut.Name = "btnLogOut";
             btnLogOut.Size = new Size(285, 64);
             btnLogOut.TabIndex = 8;

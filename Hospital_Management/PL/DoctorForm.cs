@@ -50,6 +50,32 @@ namespace Hospital_Management.PL
             ClearInputs(); 
         }
 
+        private void txtPhone_KeyPress(object? sender, KeyPressEventArgs e)
+        {
+            if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar))
+            {
+                e.Handled = true;
+            }
+
+            // Max length: 10 digits
+            if (txtPhone.Text.Length >= 10 && !char.IsControl(e.KeyChar))
+            {
+                e.Handled = true;
+            }
+
+            // If first digit is entered, ensure it's '0'
+            if (txtPhone.Text.Length == 0 && e.KeyChar != '0')
+            {
+                e.Handled = true;
+            }
+
+            // If second digit is entered, ensure it's '6'
+            if (txtPhone.Text.Length == 1 && e.KeyChar != '6')
+            {
+                e.Handled = true;
+            }
+        }
+
         private void button4_Click(object? sender, EventArgs e)
         {
             try
@@ -63,7 +89,7 @@ namespace Hospital_Management.PL
                 string phone = txtPhone.Text.Trim();
                 string officeNumber = txtOfficeNumber.Text.Trim();
 
-                // Basic validation (optional but recommended)
+                // Basic validation
                 if (string.IsNullOrWhiteSpace(fullName) || string.IsNullOrWhiteSpace(phone) || string.IsNullOrWhiteSpace(specialty) || string.IsNullOrWhiteSpace(officeNumber))
                 {
                     throw new ValidationException("Please fill out all required fields.");
@@ -73,14 +99,12 @@ namespace Hospital_Management.PL
                 {
                     throw new ValidationException("You cannot add numbers or symbols to the doctors name.");
                 }
-                if (!Regex.IsMatch(txtPhone.Text, @"^\d{9,15}$"))
+
+                if (!Regex.IsMatch(phone, @"^06\d{8}$"))
                 {
-                    throw new ValidationException("Please enter a valid phone number.");
+                    throw new ValidationException("Phone number must start with '06' followed by 8 digits.");
                 }
-                if (txtPhone.Text.Length != 10)
-                {
-                    throw new ValidationException("Phone number must have exactly 10 digits.");
-                }
+
                 if (!Regex.IsMatch(officeNumber, @"^[A-Z]\d{3}$"))
                 {
                     throw new ValidationException("Office number must start with a capital letter followed by exactly 3 digits.");
@@ -88,20 +112,13 @@ namespace Hospital_Management.PL
 
                 using (var context = new HospitalContext())
                 {
-                    // Check if a doctor with the same attributes already exists
-                    bool exists = context.Doctors.Any(d =>
-                        d.FullName == fullName &&
-                        d.PhoneNumber == (phone) &&
-                        d.Specialty == specialty &&
-                        d.OfficeNumber == officeNumber
-                    );
-
-                    if (exists)
+                    // Check if a doctor with the same phone number already exists
+                    if (context.Doctors.Any(d => d.PhoneNumber == phone))
                     {
-                        throw new DuplicateEntryException("A doctor with these details already exists.");
+                        throw new DuplicateEntryException("A doctor with this phone number already exists.");
                     }
 
-                    // Add new patient
+                    // Add new doctor
                     var doctor = new Doctor
                     {
                         FullName = fullName,

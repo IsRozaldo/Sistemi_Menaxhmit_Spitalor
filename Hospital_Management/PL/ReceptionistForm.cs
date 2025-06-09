@@ -65,6 +65,32 @@ namespace Hospital_Management.PL
             }
         }
 
+        private void txtPhoneNumber_KeyPress(object? sender, KeyPressEventArgs e)
+        {
+            if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar))
+            {
+                e.Handled = true;
+            }
+
+            // Max length: 10 digits
+            if (txtPhoneNumber.Text.Length >= 10 && !char.IsControl(e.KeyChar))
+            {
+                e.Handled = true;
+            }
+
+            // If first digit is entered, ensure it's '0'
+            if (txtPhoneNumber.Text.Length == 0 && e.KeyChar != '0')
+            {
+                e.Handled = true;
+            }
+
+            // If second digit is entered, ensure it's '6'
+            if (txtPhoneNumber.Text.Length == 1 && e.KeyChar != '6')
+            {
+                e.Handled = true;
+            }
+        }
+
         private void btnAddRec_Click(object sender, EventArgs e)
         {
             try
@@ -81,13 +107,9 @@ namespace Hospital_Management.PL
                 }
                 string phone = txtPhoneNumber.Text.Trim();
 
-                if (!Regex.IsMatch(phone, @"^\d+$"))
+                if (!Regex.IsMatch(phone, @"^06\d{8}$"))
                 {
-                    throw new ValidationException("Phone number must contain only digits.");
-                }
-                if (txtPhoneNumber.Text.Length != 10)
-                {
-                    throw new ValidationException("Phone number must have exactly 10 digits.");
+                    throw new ValidationException("Phone number must start with '06' followed by 8 digits.");
                 }
 
                 using (var context = new HospitalContext())
@@ -102,10 +124,10 @@ namespace Hospital_Management.PL
                         throw new DuplicateEntryException($"A user with the username '{username}' already exists. Please use a different full name or modify the username generation logic.");
                     }
 
-                    // Check for duplicate receptionist (same FullName and PhoneNumber)
-                    if (context.Receptionists.Any(r => r.FullName == nameTrimmed && r.PhoneNumber == phoneTrimmed))
+                    // Check for duplicate phone number
+                    if (context.Receptionists.Any(r => r.PhoneNumber == phoneTrimmed))
                     {
-                        throw new DuplicateEntryException("A receptionist with the same full name and phone number already exists.");
+                        throw new DuplicateEntryException("A receptionist with this phone number already exists.");
                     }
 
                     // Create new user first
@@ -132,8 +154,7 @@ namespace Hospital_Management.PL
                     context.Receptionists.Add(receptionist);
                     context.SaveChanges();
 
-                    MessageBox.Show("Receptionist added successfully! Default password is 'Welcome123'", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
-
+                    MessageBox.Show("Receptionist added successfully!");
                     ClearInputs();
                     LoadReceptionists();
                 }

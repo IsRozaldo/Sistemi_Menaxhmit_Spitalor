@@ -35,8 +35,20 @@ namespace Hospital_Management.PL
                 e.Handled = true;
             }
 
-            // Max length: +355 (4) + 9 digits = 13 characters
-            if (txtPhoneNumber.Text.Length >= 13 && !char.IsControl(e.KeyChar))
+            // Max length: 10 digits
+            if (txtPhoneNumber.Text.Length >= 10 && !char.IsControl(e.KeyChar))
+            {
+                e.Handled = true;
+            }
+
+            // If first digit is entered, ensure it's '0'
+            if (txtPhoneNumber.Text.Length == 0 && e.KeyChar != '0')
+            {
+                e.Handled = true;
+            }
+
+            // If second digit is entered, ensure it's '6'
+            if (txtPhoneNumber.Text.Length == 1 && e.KeyChar != '6')
             {
                 e.Handled = true;
             }
@@ -109,15 +121,18 @@ namespace Hospital_Management.PL
                     throw new DuplicateEntryException("You cannot create a duplicate patient. Please clear the form first.");
                 }
 
-                // Get form values
                 string fullName = txtFullName.Text.Trim();
-                int age = int.TryParse(txtAge.Text, out int a) ? a : 0;
-                string gender = cmbGender.Text.Trim();
                 string phoneNumber = txtPhoneNumber.Text.Trim();
-                string assignedTo = cmbAssignedDoctor.Text.Trim();
+                string gender = cmbGender.SelectedItem?.ToString() ?? string.Empty;
+                string assignedTo = cmbAssignedDoctor.SelectedItem?.ToString() ?? string.Empty;
                 string description = txtDescription.Text.Trim();
 
-                // Basic validation (optional but recommended)
+                if (!int.TryParse(txtAge.Text, out int age))
+                {
+                    throw new ValidationException("Please enter a valid age.");
+                }
+
+                // Basic validation
                 if (string.IsNullOrWhiteSpace(fullName) || string.IsNullOrWhiteSpace(phoneNumber) || int.IsNegative(age) || string.IsNullOrWhiteSpace(gender) || string.IsNullOrWhiteSpace(assignedTo) || string.IsNullOrWhiteSpace(description))
                 {
                     throw new ValidationException("Please fill out all required fields.");
@@ -128,33 +143,22 @@ namespace Hospital_Management.PL
                     throw new ValidationException("You cannot add numbers or symbols to the patient name.");
                 }
 
-                if (!Regex.IsMatch(txtPhoneNumber.Text, @"^\d{9,15}$"))
+                if (!Regex.IsMatch(phoneNumber, @"^06\d{8}$"))
                 {
-                    throw new ValidationException("Please enter a valid phone number.");
+                    throw new ValidationException("Phone number must start with '06' followed by 8 digits.");
                 }
-                if (txtPhoneNumber.Text.Length != 10)
-                {
-                    throw new ValidationException("Phone number must have exactly 10 digits.");
-                }
+
                 if (txtDescription.Text.Length > 150)
                 {
-                    throw new ValidationException("The description cannot be longer than 250 characters.");
+                    throw new ValidationException("The description cannot be longer than 150 characters.");
                 }
+
                 using (var context = new HospitalContext())
                 {
-                    // Check if a patient with the same attributes already exists
-                    bool exists = context.Patients.Any(p =>
-                        p.FullName == fullName &&
-                        p.Age == age &&
-                        p.Gender == gender &&
-                        p.PhoneNumber == phoneNumber &&
-                        p.AssignedDoctor == assignedTo &&
-                        p.Description == description
-                    );
-
-                    if (exists)
+                    // Check if a patient with the same phone number already exists
+                    if (context.Patients.Any(p => p.PhoneNumber == phoneNumber))
                     {
-                        throw new DuplicateEntryException("A patient with these details already exists.");
+                        throw new DuplicateEntryException("A patient with this phone number already exists.");
                     }
 
                     // Add new patient
