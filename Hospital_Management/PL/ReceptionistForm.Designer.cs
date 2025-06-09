@@ -28,7 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
-            DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle2 = new DataGridViewCellStyle();
             panel1 = new Panel();
             label1 = new Label();
             txtPhoneNumber = new TextBox();
@@ -126,14 +126,14 @@
             // dataGridViewReceptionists
             // 
             dataGridViewReceptionists.AllowUserToOrderColumns = true;
-            dataGridViewCellStyle1.Alignment = DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle1.BackColor = SystemColors.Control;
-            dataGridViewCellStyle1.Font = new Font("Segoe UI", 9F);
-            dataGridViewCellStyle1.ForeColor = SystemColors.WindowText;
-            dataGridViewCellStyle1.SelectionBackColor = SystemColors.Highlight;
-            dataGridViewCellStyle1.SelectionForeColor = SystemColors.HighlightText;
-            dataGridViewCellStyle1.WrapMode = DataGridViewTriState.True;
-            dataGridViewReceptionists.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
+            dataGridViewCellStyle2.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle2.BackColor = SystemColors.Control;
+            dataGridViewCellStyle2.Font = new Font("Segoe UI", 9F);
+            dataGridViewCellStyle2.ForeColor = SystemColors.WindowText;
+            dataGridViewCellStyle2.SelectionBackColor = SystemColors.Highlight;
+            dataGridViewCellStyle2.SelectionForeColor = SystemColors.HighlightText;
+            dataGridViewCellStyle2.WrapMode = DataGridViewTriState.True;
+            dataGridViewReceptionists.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle2;
             dataGridViewReceptionists.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dataGridViewReceptionists.Location = new Point(63, 220);
             dataGridViewReceptionists.Name = "dataGridViewReceptionists";
@@ -146,7 +146,7 @@
             // 
             btnAddRec.BackColor = Color.BurlyWood;
             btnAddRec.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold);
-            btnAddRec.Location = new Point(63, 564);
+            btnAddRec.Location = new Point(274, 555);
             btnAddRec.Name = "btnAddRec";
             btnAddRec.Size = new Size(124, 56);
             btnAddRec.TabIndex = 28;
@@ -158,7 +158,7 @@
             // 
             btnEditRec.BackColor = Color.BurlyWood;
             btnEditRec.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold);
-            btnEditRec.Location = new Point(310, 564);
+            btnEditRec.Location = new Point(404, 555);
             btnEditRec.Name = "btnEditRec";
             btnEditRec.Size = new Size(124, 56);
             btnEditRec.TabIndex = 29;
@@ -170,7 +170,7 @@
             // 
             btnRemoveRec.BackColor = Color.BurlyWood;
             btnRemoveRec.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold);
-            btnRemoveRec.Location = new Point(557, 564);
+            btnRemoveRec.Location = new Point(534, 555);
             btnRemoveRec.Name = "btnRemoveRec";
             btnRemoveRec.Size = new Size(124, 56);
             btnRemoveRec.TabIndex = 29;
@@ -182,7 +182,7 @@
             // 
             btnNewRec.BackColor = Color.BurlyWood;
             btnNewRec.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold);
-            btnNewRec.Location = new Point(197, 564);
+            btnNewRec.Location = new Point(144, 555);
             btnNewRec.Name = "btnNewRec";
             btnNewRec.Size = new Size(124, 56);
             btnNewRec.TabIndex = 28;
@@ -195,7 +195,7 @@
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.Linen;
-            ClientSize = new Size(800, 636);
+            ClientSize = new Size(800, 625);
             Controls.Add(btnAddRec);
             Controls.Add(btnEditRec);
             Controls.Add(btnRemoveRec);
