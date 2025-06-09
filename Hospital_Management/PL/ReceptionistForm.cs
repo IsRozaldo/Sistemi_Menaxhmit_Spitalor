@@ -104,11 +104,13 @@ namespace Hospital_Management.PL
                     throw new DuplicateEntryException("You cannot create a duplicate receptionist. Please clear the form first.");
                 }
                 string name = txtFullName.Text.Trim();
-
-                if (!Regex.IsMatch(name, @"^[a-zA-Z\s]+$"))
+                
+                // Validate full name format
+                if (!Regex.IsMatch(name, @"^[a-zA-Z]+\s+[a-zA-Z]+$"))
                 {
-                    throw new ValidationException("Name can only contain letters and spaces.");
+                    throw new ValidationException("Full name must contain both first and last name, and can only contain alphabetical letters.");
                 }
+
                 string phone = txtPhoneNumber.Text.Trim();
 
                 if (!Regex.IsMatch(phone, @"^06\d{8}$"))

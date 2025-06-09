@@ -128,6 +128,13 @@ namespace Hospital_Management.PL
                 }
 
                 string fullName = txtFullName.Text.Trim();
+                
+                // Validate full name format
+                if (!Regex.IsMatch(fullName, @"^[a-zA-Z]+\s+[a-zA-Z]+$"))
+                {
+                    throw new ValidationException("Full name must contain both first and last name, and can only contain alphabetical letters.");
+                }
+
                 string phoneNumber = txtPhoneNumber.Text.Trim();
                 string gender = cmbGender.SelectedItem?.ToString() ?? string.Empty;
                 string assignedTo = cmbAssignedDoctor.SelectedItem?.ToString() ?? string.Empty;

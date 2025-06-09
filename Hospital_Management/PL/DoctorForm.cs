@@ -90,6 +90,13 @@ namespace Hospital_Management.PL
                     throw new DuplicateEntryException("You cannot create a duplicate Doctor. Please clear the form first.");
                 }
                 string fullName = txtFullName.Text.Trim();
+                
+                // Validate full name format
+                if (!Regex.IsMatch(fullName, @"^[a-zA-Z]+\s+[a-zA-Z]+$"))
+                {
+                    throw new ValidationException("Full name must contain both first and last name, and can only contain alphabetical letters.");
+                }
+
                 string specialty = cmbSpecialty.Text.Trim();
                 string phone = txtPhone.Text.Trim();
                 string officeNumber = txtOfficeNumber.Text.Trim();
@@ -98,11 +105,6 @@ namespace Hospital_Management.PL
                 if (string.IsNullOrWhiteSpace(fullName) || string.IsNullOrWhiteSpace(phone) || string.IsNullOrWhiteSpace(specialty) || string.IsNullOrWhiteSpace(officeNumber))
                 {
                     throw new ValidationException("Please fill out all required fields.");
-                }
-
-                if (!Regex.IsMatch(fullName, @"^[a-zA-Z\s]+$"))
-                {
-                    throw new ValidationException("You cannot add numbers or symbols to the doctors name.");
                 }
 
                 if (!Regex.IsMatch(phone, @"^06\d{8}$"))
