@@ -125,6 +125,11 @@ namespace Hospital_Management.Core
         {
             Operation = operation;
         }
+
+        public DatabaseException(string operation, string message, Exception inner) : base(message, inner)
+        {
+            Operation = operation;
+        }
     }
 
     [Serializable]

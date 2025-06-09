@@ -49,6 +49,14 @@
             label8 = new Label();
             dateTimePickerScheduled = new DateTimePicker();
             cmbAssignedTo = new ComboBox();
+            cmbFilterDoctor = new ComboBox();
+            label9 = new Label();
+            cmbFilterPatient = new ComboBox();
+            label10 = new Label();
+            dtpFilterDate = new DateTimePicker();
+            label11 = new Label();
+            btnFilterAppointments = new Button();
+            btnClearFilter = new Button();
             panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)dataGridViewAppointments).BeginInit();
             SuspendLayout();
@@ -248,37 +256,124 @@
             label8.Name = "label8";
             label8.Size = new Size(167, 28);
             label8.TabIndex = 47;
-            label8.Text = "AppointedDate : ";
+            label8.Text = "Scheduled Date : ";
             // 
             // dateTimePickerScheduled
             // 
             dateTimePickerScheduled.Location = new Point(218, 337);
             dateTimePickerScheduled.Name = "dateTimePickerScheduled";
-            dateTimePickerScheduled.Size = new Size(262, 27);
+            dateTimePickerScheduled.Size = new Size(516, 27);
             dateTimePickerScheduled.TabIndex = 48;
             // 
             // cmbAssignedTo
             // 
-            cmbAssignedTo.Enabled = false;
             cmbAssignedTo.FormattingEnabled = true;
-            cmbAssignedTo.Location = new Point(218, 171);
+            cmbAssignedTo.Location = new Point(218, 169);
             cmbAssignedTo.Name = "cmbAssignedTo";
             cmbAssignedTo.Size = new Size(516, 28);
             cmbAssignedTo.TabIndex = 49;
+            // 
+            // cmbFilterDoctor
+            // 
+            cmbFilterDoctor.FormattingEnabled = true;
+            cmbFilterDoctor.Location = new Point(948, 127);
+            cmbFilterDoctor.Name = "cmbFilterDoctor";
+            cmbFilterDoctor.Size = new Size(200, 28);
+            cmbFilterDoctor.TabIndex = 50;
+            // 
+            // label9
+            // 
+            label9.AutoSize = true;
+            label9.Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold);
+            label9.Location = new Point(810, 127);
+            label9.Margin = new Padding(4, 0, 4, 0);
+            label9.Name = "label9";
+            label9.Size = new Size(130, 28);
+            label9.TabIndex = 51;
+            label9.Text = "Filter Doctor:";
+            // 
+            // cmbFilterPatient
+            // 
+            cmbFilterPatient.FormattingEnabled = true;
+            cmbFilterPatient.Location = new Point(948, 169);
+            cmbFilterPatient.Name = "cmbFilterPatient";
+            cmbFilterPatient.Size = new Size(200, 28);
+            cmbFilterPatient.TabIndex = 52;
+            // 
+            // label10
+            // 
+            label10.AutoSize = true;
+            label10.Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold);
+            label10.Location = new Point(810, 169);
+            label10.Margin = new Padding(4, 0, 4, 0);
+            label10.Name = "label10";
+            label10.Size = new Size(129, 28);
+            label10.TabIndex = 53;
+            label10.Text = "Filter Patient:";
+            // 
+            // dtpFilterDate
+            // 
+            dtpFilterDate.Location = new Point(948, 214);
+            dtpFilterDate.Name = "dtpFilterDate";
+            dtpFilterDate.Size = new Size(200, 27);
+            dtpFilterDate.TabIndex = 54;
+            // 
+            // label11
+            // 
+            label11.AutoSize = true;
+            label11.Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold);
+            label11.Location = new Point(810, 213);
+            label11.Margin = new Padding(4, 0, 4, 0);
+            label11.Name = "label11";
+            label11.Size = new Size(116, 28);
+            label11.TabIndex = 55;
+            label11.Text = "Filter Date:";
+            // 
+            // btnFilterAppointments
+            // 
+            btnFilterAppointments.BackColor = Color.LightGray;
+            btnFilterAppointments.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold);
+            btnFilterAppointments.Location = new Point(810, 256);
+            btnFilterAppointments.Name = "btnFilterAppointments";
+            btnFilterAppointments.Size = new Size(160, 40);
+            btnFilterAppointments.TabIndex = 56;
+            btnFilterAppointments.Text = "Filter Appointments";
+            btnFilterAppointments.UseVisualStyleBackColor = false;
+            btnFilterAppointments.Click += btnFilterAppointments_Click;
+            // 
+            // btnClearFilter
+            // 
+            btnClearFilter.BackColor = Color.LightGray;
+            btnClearFilter.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold);
+            btnClearFilter.Location = new Point(988, 256);
+            btnClearFilter.Name = "btnClearFilter";
+            btnClearFilter.Size = new Size(160, 40);
+            btnClearFilter.TabIndex = 57;
+            btnClearFilter.Text = "Clear Filter";
+            btnClearFilter.UseVisualStyleBackColor = false;
+            btnClearFilter.Click += btnClearFilter_Click;
             // 
             // AppointmentForm
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.Linen;
-            ClientSize = new Size(800, 716);
+            ClientSize = new Size(1182, 753);
+            Controls.Add(btnClearFilter);
+            Controls.Add(btnFilterAppointments);
+            Controls.Add(label11);
+            Controls.Add(dtpFilterDate);
+            Controls.Add(label10);
+            Controls.Add(cmbFilterPatient);
+            Controls.Add(label9);
+            Controls.Add(cmbFilterDoctor);
             Controls.Add(cmbAssignedTo);
             Controls.Add(dateTimePickerScheduled);
             Controls.Add(label8);
+            Controls.Add(btnNewRec);
             Controls.Add(btnAddRec);
             Controls.Add(btnEditRec);
             Controls.Add(btnRemoveRec);
-            Controls.Add(btnNewRec);
             Controls.Add(dataGridViewAppointments);
             Controls.Add(cmbCreatedBy);
             Controls.Add(cmbSelectPatient);
@@ -325,5 +420,13 @@
         private Label label8;
         private DateTimePicker dateTimePickerScheduled;
         private ComboBox cmbAssignedTo;
+        private ComboBox cmbFilterDoctor;
+        private Label label9;
+        private ComboBox cmbFilterPatient;
+        private Label label10;
+        private DateTimePicker dtpFilterDate;
+        private Label label11;
+        private Button btnFilterAppointments;
+        private Button btnClearFilter;
     }
 }

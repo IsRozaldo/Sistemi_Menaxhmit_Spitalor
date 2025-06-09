@@ -25,10 +25,14 @@ namespace Hospital_Management.PL
             cmbCreatedBy.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbAssignedTo.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbSelectPatient.DropDownStyle = ComboBoxStyle.DropDownList;
+            cmbFilterDoctor.DropDownStyle = ComboBoxStyle.DropDownList;
+            cmbFilterPatient.DropDownStyle = ComboBoxStyle.DropDownList;
             LoadPatientsIntoComboBox();
             LoadReceptionistsIntoComboBox();
-            LoadAppointmentsToGrid();
             LoadDoctorsIntoComboBox();
+            LoadDoctorsIntoFilterComboBox();
+            LoadPatientsIntoFilterComboBox();
+            LoadAppointmentsToGrid(null, null, null);
         }
         private void LoadPatientsIntoComboBox()
         {
@@ -60,6 +64,29 @@ namespace Hospital_Management.PL
                 cmbCreatedBy.ValueMember = "ReceptionistID";
             }
         }
+        private void LoadDoctorsIntoFilterComboBox()
+        {
+            using (var context = new HospitalContext())
+            {
+                var doctors = context.Doctors.ToList();
+                doctors.Insert(0, new Doctor { DoctorID = 0, FullName = "All Doctors" }); // Add a default "All" option
+                cmbFilterDoctor.DataSource = doctors;
+                cmbFilterDoctor.DisplayMember = "FullName";
+                cmbFilterDoctor.ValueMember = "DoctorID";
+            }
+        }
+
+        private void LoadPatientsIntoFilterComboBox()
+        {
+            using (var context = new HospitalContext())
+            {
+                var patients = context.Patients.ToList();
+                patients.Insert(0, new Patient { Id = 0, FullName = "All Patients" }); // Add a default "All" option
+                cmbFilterPatient.DataSource = patients;
+                cmbFilterPatient.DisplayMember = "FullName";
+                cmbFilterPatient.ValueMember = "Id";
+            }
+        }
         private void dataGridViewAppointments_CellClick(object? sender, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex >= 0)
@@ -86,26 +113,43 @@ namespace Hospital_Management.PL
                 }
             }
         }
-        private void LoadAppointmentsToGrid()
+        private void LoadAppointmentsToGrid(int? doctorId, int? patientId, DateTime? scheduledDate)
         {
             using (var context = new HospitalContext())
             {
-                var appointments = context.Appointments
+                var query = context.Appointments
                     .Include(a => a.Patient)
                     .Include(a => a.Doctor)
                     .Include(a => a.Receptionist)
-                    .Select(a => new
-                    {
-                        a.AppointmentID,
-                        PatientName = a.Patient.FullName,
-                        DoctorName = a.Doctor.FullName,
-                        ReceptionistName = a.Receptionist.FullName,
-                        a.Age,
-                        a.Gender,
-                        a.CreatedAt,
-                        a.ScheduledDate
-                    })
-                    .ToList();
+                    .AsQueryable();
+
+                if (doctorId.HasValue && doctorId.Value != 0)
+                {
+                    query = query.Where(a => a.DoctorID == doctorId.Value);
+                }
+
+                if (patientId.HasValue && patientId.Value != 0)
+                {
+                    query = query.Where(a => a.PatientID == patientId.Value);
+                }
+
+                if (scheduledDate.HasValue)
+                {
+                    query = query.Where(a => a.ScheduledDate.Date == scheduledDate.Value.Date);
+                }
+
+                var appointments = query.Select(a => new
+                {
+                    a.AppointmentID,
+                    PatientName = a.Patient.FullName,
+                    DoctorName = a.Doctor.FullName,
+                    ReceptionistName = a.Receptionist.FullName,
+                    a.Age,
+                    a.Gender,
+                    a.CreatedAt,
+                    a.ScheduledDate
+                })
+                .ToList();
 
                 dataGridViewAppointments.DataSource = appointments;
             }
@@ -139,68 +183,104 @@ namespace Hospital_Management.PL
             cmbAssignedTo.SelectedIndex = -1;
             cmbCreatedBy.SelectedIndex = -1;
             dateTimePickerScheduled.Value = DateTime.Now;
+            txtAppointmentID.Clear(); // Clear appointment ID when clearing form
         }
         private void btnAddRec_Click(object? sender, EventArgs e)
         {
-            if (cmbSelectPatient.SelectedItem == null)
+            try
             {
-                MessageBox.Show("Please select a patient!");
-                return;
-            }
-
-            if (string.IsNullOrWhiteSpace(txtAge.Text) || string.IsNullOrWhiteSpace(txtGender.Text))
-            {
-                MessageBox.Show("Please fill in age and gender!");
-                return;
-            }
-
-            if (cmbAssignedTo.SelectedItem == null)
-            {
-                MessageBox.Show("Please assign a doctor!");
-                return;
-            }
-
-            if (cmbCreatedBy.SelectedItem == null)
-            {
-                MessageBox.Show("Please select the receptionist who will create the appointment!");
-                return;
-            }
-
-            using (var context = new HospitalContext())
-            {
-                int selectedPatientId = (int?)cmbSelectPatient.SelectedValue ?? 0;
-                DateTime selectedDate = dateTimePickerScheduled.Value.Date;
-
-                bool appointmentExists = context.Appointments
-                    .Any(a => a.PatientID == selectedPatientId && a.ScheduledDate.Date == selectedDate);
-
-                if (appointmentExists)
+                if (cmbSelectPatient.SelectedItem == null)
                 {
-                    MessageBox.Show("An appointment for this patient is already added on this date.", "Duplicate Appointment", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    return;
+                    throw new ValidationException("Patient", null, 
+                        "Please select a patient!");
                 }
-                var appointment = new Appointment
+
+                if (string.IsNullOrWhiteSpace(txtAge.Text) || string.IsNullOrWhiteSpace(txtGender.Text))
                 {
-                    PatientID = (int?)cmbSelectPatient.SelectedValue ?? 0,
-                    DoctorID = (int?)cmbAssignedTo.SelectedValue ?? 0,
-                    Age = int.Parse(txtAge.Text),
-                    Gender = txtGender.Text,
-                    ReceptionistID = (int?)cmbCreatedBy.SelectedValue ?? 0,
-                    CreatedAt = DateTime.Now,
-                    ScheduledDate = dateTimePickerScheduled.Value,
-                };
-                context.Appointments.Add(appointment);
-                context.SaveChanges();
-                MessageBox.Show("Appointment successfully added!");
-                LoadAppointmentsToGrid();
-                ClearForm();
+                    throw new ValidationException("Age/Gender", null, 
+                        "Please fill in age and gender!");
+                }
+
+                if (cmbAssignedTo.SelectedItem == null)
+                {
+                    throw new ValidationException("Doctor", null, 
+                        "Please assign a doctor!");
+                }
+
+                if (cmbCreatedBy.SelectedItem == null)
+                {
+                    throw new ValidationException("Receptionist", null, 
+                        "Please select the receptionist who will create the appointment!");
+                }
+
+                using (var context = new HospitalContext())
+                {
+                    int selectedPatientId = (int?)cmbSelectPatient.SelectedValue ?? 0;
+                    DateTime selectedDate = dateTimePickerScheduled.Value.Date;
+
+                    bool appointmentExists = context.Appointments
+                        .Any(a => a.PatientID == selectedPatientId && a.ScheduledDate.Date == selectedDate);
+
+                    if (appointmentExists)
+                    {
+                        throw new DuplicateEntryException("Appointment", 
+                            new { PatientID = selectedPatientId, ScheduledDate = selectedDate }, 
+                            "An appointment for this patient is already added on this date.");
+                    }
+                    var appointment = new Appointment
+                    {
+                        PatientID = (int?)cmbSelectPatient.SelectedValue ?? 0,
+                        DoctorID = (int?)cmbAssignedTo.SelectedValue ?? 0,
+                        Age = int.Parse(txtAge.Text),
+                        Gender = txtGender.Text,
+                        ReceptionistID = (int?)cmbCreatedBy.SelectedValue ?? 0,
+                        CreatedAt = DateTime.Now,
+                        ScheduledDate = dateTimePickerScheduled.Value,
+                    };
+                    try
+                    {
+                        context.Appointments.Add(appointment);
+                        context.SaveChanges();
+                        MessageBox.Show("Appointment successfully added!");
+                        LoadAppointmentsToGrid(null, null, null);
+                        ClearForm();
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new DatabaseException("Insert", "Failed to add appointment to database.", ex);
+                    }
+                }
+            }
+            catch (ValidationException ex)
+            {
+                MessageBox.Show($"Validation Error: {ex.Message}\nProperty: {ex.PropertyName}", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+            catch (DuplicateEntryException ex)
+            {
+                MessageBox.Show($"Duplicate Entry: {ex.Message}\nEntity: {ex.EntityName}\nValue: {ex.KeyValue}", "Duplicate Entry", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+            catch (DatabaseException ex)
+            {
+                MessageBox.Show($"Database Error: {ex.Message}\nOperation: {ex.Operation}", "Database Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"An unexpected error occurred: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
         private void btnRemoveRec_Click(object? sender, EventArgs e)
         {
-            if (dataGridViewAppointments.SelectedRows.Count > 0)
+            try
             {
+                if (dataGridViewAppointments.SelectedRows.Count == 0)
+                {
+                    throw new ValidationException("Appointment", null, 
+                        "Please select an appointment to remove.");
+                }
+
+                int appointmentId = (int?)dataGridViewAppointments.SelectedRows[0].Cells["AppointmentID"].Value ?? 0;
+
                 DialogResult result = MessageBox.Show(
                     "Are you sure you want to remove the appointment?",
                     "Confirm Deletion",
@@ -209,99 +289,125 @@ namespace Hospital_Management.PL
 
                 if (result == DialogResult.Yes)
                 {
-                    int appointmentId = (int?)dataGridViewAppointments.SelectedRows[0].Cells["AppointmentID"].Value ?? 0;
-
                     using (var context = new HospitalContext())
                     {
-                        var appointment = context.Appointments.Find(appointmentId);
-
-                        if (appointment != null)
+                        try
                         {
-                            context.Appointments.Remove(appointment);
-                            context.SaveChanges();
+                            var appointment = context.Appointments.Find(appointmentId);
 
-                            MessageBox.Show("Appointment removed successfully.");
-                            LoadAppointmentsToGrid();
-                            ClearForm();
+                            if (appointment != null)
+                            {
+                                context.Appointments.Remove(appointment);
+                                context.SaveChanges();
+
+                                MessageBox.Show("Appointment removed successfully.");
+                                LoadAppointmentsToGrid(null, null, null);
+                                ClearForm();
+                            }
+                            else
+                            {
+                                throw new NotFoundException("Appointment", appointmentId, "Appointment not found.");
+                            }
                         }
-                        else
+                        catch (Exception ex)
                         {
-                            MessageBox.Show("Appointment not found.");
+                            throw new DatabaseException("Delete", "Failed to remove appointment from database.", ex);
                         }
                     }
                 }
             }
-            else
+            catch (ValidationException ex)
             {
-                MessageBox.Show("Please select an appointment to remove.");
+                MessageBox.Show($"Validation Error: {ex.Message}\nProperty: {ex.PropertyName}", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+            catch (NotFoundException ex)
+            {
+                MessageBox.Show($"Not Found Error: {ex.Message}\nEntity: {ex.EntityName}\nValue: {ex.KeyValue}", "Not Found Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            catch (DatabaseException ex)
+            {
+                MessageBox.Show($"Database Error: {ex.Message}\nOperation: {ex.Operation}", "Database Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"An unexpected error occurred: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
         private void btnNewRec_Click(object? sender, EventArgs e)
         {
-            cmbSelectPatient.SelectedIndex = -1;
-            cmbAssignedTo.SelectedIndex = -1;
-            cmbCreatedBy.SelectedIndex = -1;
-
-            txtAge.Clear();
-            txtGender.Clear();
-
-            dateTimePickerScheduled.Value = DateTime.Now;
-
-            cmbSelectPatient.Focus();
+            ClearForm();
+            LoadAppointmentsToGrid(null, null, null); // Reload all appointments
         }
 
         private void btnEditRec_Click(object? sender, EventArgs e)
         {
             try
             {
-                if (dataGridViewAppointments.SelectedRows.Count > 0)
+                if (string.IsNullOrWhiteSpace(txtAppointmentID.Text) || dataGridViewAppointments.SelectedRows.Count == 0)
                 {
-                    int appointmentId = (int?)dataGridViewAppointments.SelectedRows[0].Cells["AppointmentID"].Value ?? 0;
-                    using (var context = new HospitalContext())
+                    throw new ValidationException("AppointmentID", txtAppointmentID.Text, "Please select an appointment to edit.");
+                }
+
+                if (!int.TryParse(txtAppointmentID.Text, out int appointmentId))
+                {
+                    throw new ValidationException("AppointmentID", txtAppointmentID.Text, "Invalid Appointment ID.");
+                }
+
+                if (cmbSelectPatient.SelectedItem == null || cmbAssignedTo.SelectedItem == null || cmbCreatedBy.SelectedItem == null)
+                {
+                    throw new ValidationException("RequiredFields", null, "Please fill out all required fields.");
+                }
+
+                int patientId = (int)cmbSelectPatient.SelectedValue;
+                int doctorId = (int)cmbAssignedTo.SelectedValue;
+                int receptionistId = (int)cmbCreatedBy.SelectedValue;
+                int age = int.Parse(txtAge.Text);
+                string gender = txtGender.Text;
+                DateTime scheduledDate = dateTimePickerScheduled.Value;
+
+                using (var context = new HospitalContext())
+                {
+                    try
                     {
                         var appointment = context.Appointments.Find(appointmentId);
+
                         if (appointment != null)
                         {
-                            if (cmbSelectPatient.SelectedValue != null)
-                            {
-                                appointment.PatientID = (int?)cmbSelectPatient.SelectedValue ?? 0;
-                            }
-                            if (cmbAssignedTo.SelectedValue != null)
-                            {
-                                appointment.DoctorID = (int?)cmbAssignedTo.SelectedValue ?? 0;
-                            }
-                            appointment.Age = int.Parse(txtAge.Text);
-                            appointment.Gender = txtGender.Text;
-                            if (cmbCreatedBy.SelectedValue != null)
-                            {
-                                appointment.ReceptionistID = (int?)cmbCreatedBy.SelectedValue ?? 0;
-                            }
-                            appointment.ScheduledDate = dateTimePickerScheduled.Value;
-
+                            appointment.PatientID = patientId;
+                            appointment.DoctorID = doctorId;
+                            appointment.ReceptionistID = receptionistId;
+                            appointment.Age = age;
+                            appointment.Gender = gender;
+                            appointment.ScheduledDate = scheduledDate;
                             context.SaveChanges();
-                            MessageBox.Show("Appointment successfully updated!");
-                            LoadAppointmentsToGrid();
+
+                            MessageBox.Show("Appointment updated successfully!");
+                            LoadAppointmentsToGrid(null, null, null);
                             ClearForm();
                         }
                         else
                         {
-                            MessageBox.Show("Appointment not found in database.");
+                            throw new NotFoundException("Appointment", appointmentId, "Appointment not found.");
                         }
                     }
-                }
-                else
-                {
-                    MessageBox.Show("Please select an appointment to edit.", "No Appointment Selected", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    catch (Exception ex)
+                    {
+                        throw new DatabaseException("Update", "Failed to update appointment in database.", ex);
+                    }
                 }
             }
             catch (ValidationException ex)
             {
-                MessageBox.Show(ex.Message, "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show($"Validation Error: {ex.Message}\nProperty: {ex.PropertyName}", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
             catch (NotFoundException ex)
             {
-                MessageBox.Show(ex.Message, "Not Found Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Not Found Error: {ex.Message}\nEntity: {ex.EntityName}\nValue: {ex.KeyValue}", "Not Found Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            catch (DatabaseException ex)
+            {
+                MessageBox.Show($"Database Error: {ex.Message}\nOperation: {ex.Operation}", "Database Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             catch (Exception ex)
             {
@@ -337,7 +443,7 @@ namespace Hospital_Management.PL
                     {
                         var existingAppointment = context.Appointments
                             .FirstOrDefault(a => a.DoctorID == doctorId && 
-                                           a.ScheduledDate.Date == appointmentDate.Date);
+                                               a.ScheduledDate.Date == appointmentDate.Date);
 
                         if (existingAppointment != null)
                         {
@@ -348,11 +454,13 @@ namespace Hospital_Management.PL
                         // Create appointment
                         var appointment = new Appointment
                         {
-                            DoctorID = doctorId,
                             PatientID = patientId,
+                            DoctorID = doctorId,
                             ScheduledDate = appointmentDate,
                             CreatedAt = DateTime.Now,
-                            // ... other properties
+                            Age = int.Parse(txtAge.Text),
+                            Gender = txtGender.Text,
+                            ReceptionistID = (int?)cmbCreatedBy.SelectedValue ?? 0
                         };
 
                         context.Appointments.Add(appointment);
@@ -360,9 +468,9 @@ namespace Hospital_Management.PL
 
                         MessageBox.Show("Appointment scheduled successfully!");
                         ClearForm();
-                        LoadAppointmentsToGrid();
+                        LoadAppointmentsToGrid(null, null, null);
                     }
-                    catch (Exception ex) when (ex is not BusinessRuleException)
+                    catch (Exception ex) when (ex is not BusinessRuleException && ex is not ValidationException && ex is not DuplicateEntryException)
                     {
                         throw new DatabaseException("Insert", 
                             $"Failed to schedule appointment: {ex.Message}");
@@ -412,9 +520,9 @@ namespace Hospital_Management.PL
                 }
 
                 var result = MessageBox.Show("Are you sure you want to cancel this appointment?",
-                                           "Confirm Cancellation",
-                                           MessageBoxButtons.YesNo,
-                                           MessageBoxIcon.Warning);
+                                   "Confirm Cancellation",
+                                   MessageBoxButtons.YesNo,
+                                   MessageBoxIcon.Warning);
 
                 if (result == DialogResult.Yes)
                 {
@@ -430,7 +538,7 @@ namespace Hospital_Management.PL
                                 context.SaveChanges();
 
                                 MessageBox.Show("Appointment cancelled successfully.");
-                                LoadAppointmentsToGrid();
+                                LoadAppointmentsToGrid(null, null, null);
                             }
                             else
                             {
@@ -471,6 +579,26 @@ namespace Hospital_Management.PL
                 MessageBox.Show($"An unexpected error occurred: {ex.Message}", 
                     "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+        }
+
+        private void btnFilterAppointments_Click(object? sender, EventArgs e)
+        {
+            int? doctorId = (int?)cmbFilterDoctor.SelectedValue;
+            int? patientId = (int?)cmbFilterPatient.SelectedValue;
+            DateTime? scheduledDate = dtpFilterDate.Value.Date;
+
+            if (doctorId == 0) doctorId = null; // Treat "All Doctors" as no filter
+            if (patientId == 0) patientId = null; // Treat "All Patients" as no filter
+
+            LoadAppointmentsToGrid(doctorId, patientId, scheduledDate);
+        }
+
+        private void btnClearFilter_Click(object? sender, EventArgs e)
+        {
+            cmbFilterDoctor.SelectedIndex = 0; // Select "All Doctors"
+            cmbFilterPatient.SelectedIndex = 0; // Select "All Patients"
+            dtpFilterDate.Value = DateTime.Now; // Reset date to current
+            LoadAppointmentsToGrid(null, null, null); // Load all appointments
         }
     }
 }
