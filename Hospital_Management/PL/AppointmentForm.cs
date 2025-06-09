@@ -308,5 +308,169 @@ namespace Hospital_Management.PL
                 MessageBox.Show($"An unexpected error occurred: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
+
+        private void btnScheduleAppointment_Click(object? sender, EventArgs e)
+        {
+            try
+            {
+                if (cmbSelectPatient.SelectedValue == null || cmbAssignedTo.SelectedValue == null)
+                {
+                    throw new ValidationException("RequiredFields", new { Patient = cmbSelectPatient.SelectedValue, Doctor = cmbAssignedTo.SelectedValue }, 
+                        "Please select both a patient and a doctor.");
+                }
+
+                DateTime appointmentDate = dateTimePickerScheduled.Value;
+                int doctorId = (int)cmbAssignedTo.SelectedValue;
+                int patientId = (int)cmbSelectPatient.SelectedValue;
+
+                // Business rule: Cannot schedule appointments in the past
+                if (appointmentDate < DateTime.Now)
+                {
+                    throw new BusinessRuleException("PastAppointment", 
+                        "Cannot schedule appointments in the past.");
+                }
+
+                // Business rule: Check doctor's schedule
+                using (var context = new HospitalContext())
+                {
+                    try
+                    {
+                        var existingAppointment = context.Appointments
+                            .FirstOrDefault(a => a.DoctorID == doctorId && 
+                                           a.ScheduledDate.Date == appointmentDate.Date);
+
+                        if (existingAppointment != null)
+                        {
+                            throw new BusinessRuleException("DoctorSchedule", 
+                                "Doctor already has an appointment scheduled for this date.");
+                        }
+
+                        // Create appointment
+                        var appointment = new Appointment
+                        {
+                            DoctorID = doctorId,
+                            PatientID = patientId,
+                            ScheduledDate = appointmentDate,
+                            CreatedAt = DateTime.Now,
+                            // ... other properties
+                        };
+
+                        context.Appointments.Add(appointment);
+                        context.SaveChanges();
+
+                        MessageBox.Show("Appointment scheduled successfully!");
+                        ClearForm();
+                        LoadAppointmentsToGrid();
+                    }
+                    catch (Exception ex) when (ex is not BusinessRuleException)
+                    {
+                        throw new DatabaseException("Insert", 
+                            $"Failed to schedule appointment: {ex.Message}");
+                    }
+                }
+            }
+            catch (ValidationException ex)
+            {
+                MessageBox.Show($"Validation Error: {ex.Message}\nProperty: {ex.PropertyName}\nValue: {ex.AttemptedValue}", 
+                    "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+            catch (BusinessRuleException ex)
+            {
+                MessageBox.Show($"Business Rule Violation: {ex.Message}\nRule: {ex.RuleName}", 
+                    "Business Rule Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+            catch (DatabaseException ex)
+            {
+                MessageBox.Show($"Database Error: {ex.Message}\nOperation: {ex.Operation}", 
+                    "Database Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"An unexpected error occurred: {ex.Message}", 
+                    "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void btnCancelAppointment_Click(object? sender, EventArgs e)
+        {
+            try
+            {
+                if (dataGridViewAppointments.SelectedRows.Count == 0)
+                {
+                    throw new ValidationException("Appointment", null, 
+                        "Please select an appointment to cancel.");
+                }
+
+                int appointmentId = Convert.ToInt32(dataGridViewAppointments.SelectedRows[0].Cells["AppointmentID"].Value);
+                DateTime appointmentDate = Convert.ToDateTime(dataGridViewAppointments.SelectedRows[0].Cells["ScheduledDate"].Value);
+
+                // Business rule: Cannot cancel past appointments
+                if (appointmentDate < DateTime.Now)
+                {
+                    throw new BusinessRuleException("PastAppointment", 
+                        "Cannot cancel appointments that have already passed.");
+                }
+
+                var result = MessageBox.Show("Are you sure you want to cancel this appointment?",
+                                           "Confirm Cancellation",
+                                           MessageBoxButtons.YesNo,
+                                           MessageBoxIcon.Warning);
+
+                if (result == DialogResult.Yes)
+                {
+                    using (var context = new HospitalContext())
+                    {
+                        try
+                        {
+                            var appointment = context.Appointments.Find(appointmentId);
+
+                            if (appointment != null)
+                            {
+                                context.Appointments.Remove(appointment);
+                                context.SaveChanges();
+
+                                MessageBox.Show("Appointment cancelled successfully.");
+                                LoadAppointmentsToGrid();
+                            }
+                            else
+                            {
+                                throw new NotFoundException("Appointment", appointmentId.ToString(), 
+                                    "Appointment not found in database.");
+                            }
+                        }
+                        catch (Exception ex) when (ex is not NotFoundException)
+                        {
+                            throw new DatabaseException("Delete", 
+                                $"Failed to cancel appointment: {ex.Message}");
+                        }
+                    }
+                }
+            }
+            catch (ValidationException ex)
+            {
+                MessageBox.Show($"Validation Error: {ex.Message}\nProperty: {ex.PropertyName}", 
+                    "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+            catch (BusinessRuleException ex)
+            {
+                MessageBox.Show($"Business Rule Violation: {ex.Message}\nRule: {ex.RuleName}", 
+                    "Business Rule Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+            catch (NotFoundException ex)
+            {
+                MessageBox.Show($"Not Found: {ex.Message}\nEntity: {ex.EntityName}\nID: {ex.KeyValue}", 
+                    "Not Found Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            catch (DatabaseException ex)
+            {
+                MessageBox.Show($"Database Error: {ex.Message}\nOperation: {ex.Operation}", 
+                    "Database Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"An unexpected error occurred: {ex.Message}", 
+                    "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
     }
 }

@@ -129,7 +129,8 @@ namespace Hospital_Management.PL
             {
                 if (!string.IsNullOrWhiteSpace(txtPatientID.Text))
                 {
-                    throw new DuplicateEntryException("You cannot create a duplicate patient. Please clear the form first.");
+                    throw new DuplicateEntryException("Patient", txtPatientID.Text, 
+                        "You cannot create a duplicate patient. Please clear the form first.");
                 }
 
                 string fullName = txtFullName.Text.Trim();
@@ -137,7 +138,8 @@ namespace Hospital_Management.PL
                 // Validate full name format
                 if (!Regex.IsMatch(fullName, @"^[a-zA-Z]+\s+[a-zA-Z]+$"))
                 {
-                    throw new ValidationException("Full name must contain both first and last name, and can only contain alphabetical letters.");
+                    throw new ValidationException("FullName", fullName, 
+                        "Full name must contain both first and last name, and can only contain alphabetical letters.");
                 }
 
                 string phoneNumber = txtPhoneNumber.Text.Trim();
@@ -147,69 +149,85 @@ namespace Hospital_Management.PL
 
                 if (!int.TryParse(txtAge.Text, out int age))
                 {
-                    throw new ValidationException("Please enter a valid age.");
+                    throw new ValidationException("Age", txtAge.Text, "Please enter a valid age.");
                 }
 
                 // Basic validation
-                if (string.IsNullOrWhiteSpace(fullName) || string.IsNullOrWhiteSpace(phoneNumber) || int.IsNegative(age) || string.IsNullOrWhiteSpace(gender) || string.IsNullOrWhiteSpace(assignedTo) || string.IsNullOrWhiteSpace(description))
+                if (string.IsNullOrWhiteSpace(fullName) || string.IsNullOrWhiteSpace(phoneNumber) || 
+                    int.IsNegative(age) || string.IsNullOrWhiteSpace(gender) || 
+                    string.IsNullOrWhiteSpace(assignedTo) || string.IsNullOrWhiteSpace(description))
                 {
-                    throw new ValidationException("Please fill out all required fields.");
-                }
-
-                if (!Regex.IsMatch(fullName, @"^[a-zA-Z\s]+$"))
-                {
-                    throw new ValidationException("You cannot add numbers or symbols to the patient name.");
+                    throw new ValidationException("RequiredFields", new { FullName = fullName, Age = age, Gender = gender }, 
+                        "Please fill out all required fields.");
                 }
 
                 if (!Regex.IsMatch(phoneNumber, @"^06\d{8}$"))
                 {
-                    throw new ValidationException("Phone number must start with '06' followed by 8 digits.");
+                    throw new ValidationException("PhoneNumber", phoneNumber, 
+                        "Phone number must start with '06' followed by 8 digits.");
                 }
 
                 if (txtDescription.Text.Length > 150)
                 {
-                    throw new ValidationException("The description cannot be longer than 150 characters.");
+                    throw new ValidationException("Description", description, 
+                        "The description cannot be longer than 150 characters.");
                 }
 
                 using (var context = new HospitalContext())
                 {
-                    // Check if a patient with the same phone number already exists
-                    if (context.Patients.Any(p => p.PhoneNumber == phoneNumber))
+                    try
                     {
-                        throw new DuplicateEntryException("A patient with this phone number already exists.");
+                        // Check if a patient with the same phone number already exists
+                        if (context.Patients.Any(p => p.PhoneNumber == phoneNumber))
+                        {
+                            throw new DuplicateEntryException("Patient", phoneNumber, 
+                                "A patient with this phone number already exists.");
+                        }
+
+                        // Add new patient
+                        var patient = new Patient
+                        {
+                            FullName = fullName,
+                            Age = age,
+                            Gender = gender,
+                            PhoneNumber = phoneNumber,
+                            AssignedDoctor = assignedTo,
+                            Description = description
+                        };
+
+                        context.Patients.Add(patient);
+                        context.SaveChanges();
+
+                        MessageBox.Show("Patient added successfully!");
+                        ClearInputs();
+                        LoadPatients();
                     }
-
-                    // Add new patient
-                    var patient = new Patient
+                    catch (Exception ex) when (ex is not DuplicateEntryException && ex is not ValidationException)
                     {
-                        FullName = fullName,
-                        Age = age,
-                        Gender = gender,
-                        PhoneNumber = phoneNumber,
-                        AssignedDoctor = assignedTo,
-                        Description = description
-                    };
-
-                    context.Patients.Add(patient);
-                    context.SaveChanges();
-
-                    MessageBox.Show("Patient added successfully!");
-
-                    ClearInputs();
-                    LoadPatients();
+                        throw new DatabaseException("Insert", 
+                            $"Failed to add patient to database: {ex.Message}");
+                    }
                 }
             }
             catch (ValidationException ex)
             {
-                MessageBox.Show(ex.Message, "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show($"Validation Error: {ex.Message}\nProperty: {ex.PropertyName}\nValue: {ex.AttemptedValue}", 
+                    "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
             catch (DuplicateEntryException ex)
             {
-                MessageBox.Show(ex.Message, "Duplicate Entry", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show($"Duplicate Entry: {ex.Message}\nEntity: {ex.EntityName}\nValue: {ex.KeyValue}", 
+                    "Duplicate Entry", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+            catch (DatabaseException ex)
+            {
+                MessageBox.Show($"Database Error: {ex.Message}\nOperation: {ex.Operation}", 
+                    "Database Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"An unexpected error occurred: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"An unexpected error occurred: {ex.Message}", 
+                    "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
         private void LoadPatients()
@@ -338,12 +356,14 @@ namespace Hospital_Management.PL
             {
                 if (string.IsNullOrWhiteSpace(txtPatientID.Text))
                 {
-                    throw new ValidationException("Please select a patient to remove.");
+                    throw new ValidationException("PatientID", txtPatientID.Text, 
+                        "Please select a patient to remove.");
                 }
 
                 if (!int.TryParse(txtPatientID.Text, out int patientId))
                 {
-                    throw new ValidationException("Invalid patient ID.");
+                    throw new ValidationException("PatientID", txtPatientID.Text, 
+                        "Invalid patient ID.");
                 }
 
                 var result = MessageBox.Show("Are you sure you want to remove the patient?",
@@ -355,35 +375,52 @@ namespace Hospital_Management.PL
                 {
                     using (var context = new HospitalContext())
                     {
-                        var patient = context.Patients.Find(patientId);
-
-                        if (patient != null)
+                        try
                         {
-                            context.Patients.Remove(patient);
-                            context.SaveChanges();
+                            var patient = context.Patients.Find(patientId);
 
-                            MessageBox.Show("Patient removed successfully.");
-                            LoadPatients();
-                            ClearInputs();
+                            if (patient != null)
+                            {
+                                context.Patients.Remove(patient);
+                                context.SaveChanges();
+
+                                MessageBox.Show("Patient removed successfully.");
+                                LoadPatients();
+                                ClearInputs();
+                            }
+                            else
+                            {
+                                throw new NotFoundException("Patient", patientId.ToString(), 
+                                    "Patient not found in database.");
+                            }
                         }
-                        else
+                        catch (Exception ex) when (ex is not NotFoundException)
                         {
-                            throw new NotFoundException("Patient not found.");
+                            throw new DatabaseException("Delete", 
+                                $"Failed to remove patient from database: {ex.Message}");
                         }
                     }
                 }
             }
             catch (ValidationException ex)
             {
-                MessageBox.Show(ex.Message, "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show($"Validation Error: {ex.Message}\nProperty: {ex.PropertyName}\nValue: {ex.AttemptedValue}", 
+                    "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
             catch (NotFoundException ex)
             {
-                MessageBox.Show(ex.Message, "Not Found Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Not Found: {ex.Message}\nEntity: {ex.EntityName}\nID: {ex.KeyValue}", 
+                    "Not Found Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            catch (DatabaseException ex)
+            {
+                MessageBox.Show($"Database Error: {ex.Message}\nOperation: {ex.Operation}", 
+                    "Database Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"An unexpected error occurred: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"An unexpected error occurred: {ex.Message}", 
+                    "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 

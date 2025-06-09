@@ -41,7 +41,8 @@ namespace Hospital_Management.PL
 
                 if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
                 {
-                    throw new ValidationException("Please enter both username and password.");
+                    throw new ValidationException("Credentials", new { Username = username, Password = "****" }, 
+                        "Please enter both username and password.");
                 }
 
                 string hashedPassword = User.HashPassword(password);
@@ -53,46 +54,61 @@ namespace Hospital_Management.PL
                     
                     if (user == null)
                     {
-                        throw new NotFoundException("Username not found. Please check your username and try again.");
+                        throw new NotFoundException("User", username, 
+                            "Username not found. Please check your username and try again.");
                     }
 
                     // Then check if password matches
                     if (user.Password != hashedPassword)
                     {
-                        throw new ValidationException("Incorrect password. Please try again.");
+                        throw new AuthenticationException(username, 
+                            "Incorrect password. Please try again.");
                     }
 
                     // If we get here, both username and password are correct
                     if (user.Role == "Admin" || user.Role == "Receptionist")
                     {
-                        MessageBox.Show($"Welcome, {user.FullName}!", "Login Successful", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        MessageBox.Show($"Welcome, {user.FullName}!", "Login Successful", 
+                            MessageBoxButtons.OK, MessageBoxIcon.Information);
                         Main mn = new Main(user.Role); // Pass the user's role to Main form
                         mn.Show();
                         this.Hide(); // Hide the login form
                     }
                     else
                     {
-                        throw new HospitalManagementException("You do not have permission to access this system.");
+                        throw new AuthorizationException("Admin/Receptionist", user.Role, 
+                            "You do not have permission to access this system.");
                     }
                 }
             }
             catch (ValidationException ex)
             {
-                MessageBox.Show(ex.Message, "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show($"Validation Error: {ex.Message}\nProperty: {ex.PropertyName}", 
+                    "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
             catch (NotFoundException ex)
             {
-                MessageBox.Show(ex.Message, "Login Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Not Found: {ex.Message}\nEntity: {ex.EntityName}", 
+                    "Login Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 txtUsername.Focus();
                 txtUsername.SelectAll();
             }
-            catch (HospitalManagementException ex)
+            catch (AuthenticationException ex)
             {
-                MessageBox.Show(ex.Message, "Access Denied", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show($"Authentication Failed: {ex.Message}\nUsername: {ex.Username}", 
+                    "Login Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                txtPassword.Focus();
+                txtPassword.SelectAll();
+            }
+            catch (AuthorizationException ex)
+            {
+                MessageBox.Show($"Access Denied: {ex.Message}\nRequired Role: {ex.RequiredRole}\nYour Role: {ex.UserRole}", 
+                    "Access Denied", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"An unexpected error occurred: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"An unexpected error occurred: {ex.Message}", 
+                    "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
     }
