@@ -100,6 +100,7 @@
             txtReceptionistID.ReadOnly = true;
             txtReceptionistID.Size = new Size(516, 27);
             txtReceptionistID.TabIndex = 21;
+            txtReceptionistID.Visible = false;
             // 
             // label5
             // 
@@ -111,6 +112,7 @@
             label5.Size = new Size(160, 28);
             label5.TabIndex = 20;
             label5.Text = "ReceptionistID : ";
+            label5.Visible = false;
             // 
             // label4
             // 

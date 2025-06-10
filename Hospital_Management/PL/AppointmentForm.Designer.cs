@@ -117,6 +117,7 @@
             txtAppointmentID.ReadOnly = true;
             txtAppointmentID.Size = new Size(516, 27);
             txtAppointmentID.TabIndex = 32;
+            txtAppointmentID.Visible = false;
             // 
             // label5
             // 
@@ -128,6 +129,7 @@
             label5.Size = new Size(170, 28);
             label5.TabIndex = 31;
             label5.Text = "AppointmentID : ";
+            label5.Visible = false;
             // 
             // label4
             // 

@@ -220,6 +220,7 @@
             txtPatientID.ReadOnly = true;
             txtPatientID.Size = new Size(510, 27);
             txtPatientID.TabIndex = 20;
+            txtPatientID.Visible = false;
             // 
             // label2
             // 
@@ -230,6 +231,7 @@
             label2.Size = new Size(112, 28);
             label2.TabIndex = 19;
             label2.Text = "PatientID : ";
+            label2.Visible = false;
             // 
             // btnNewPatient
             // 

@@ -117,6 +117,7 @@
             label5.Size = new Size(110, 28);
             label5.TabIndex = 4;
             label5.Text = "DoctorID : ";
+            label5.Visible = false;
             // 
             // dataGridViewDoctors
             // 
@@ -249,6 +250,7 @@
             txtDoctorID.ReadOnly = true;
             txtDoctorID.Size = new Size(516, 27);
             txtDoctorID.TabIndex = 5;
+            txtDoctorID.Visible = false;
             // 
             // txtFullName
             // 
