@@ -67,7 +67,7 @@ namespace Hospital_Management.Core.Data
                     Password = User.HashPassword("Krasniqi2024"),
                     Role = "Admin",
                     FullName = "Arlind Krasniqi",
-                    PhoneNumber = "1234567890"
+                    PhoneNumber = "0612345678"
                 },
                 new User
                 {
@@ -76,7 +76,7 @@ namespace Hospital_Management.Core.Data
                     Password = User.HashPassword("1"),
                     Role = "Receptionist",
                     FullName = "RoZaldo",
-                    PhoneNumber = "9876543210"
+                    PhoneNumber = "0698765432"
                 },
                 new User
                 {
@@ -85,7 +85,7 @@ namespace Hospital_Management.Core.Data
                     Password = User.HashPassword("332"),
                     Role = "Receptionist",
                     FullName = "Helena",
-                    PhoneNumber = "5555555555"
+                    PhoneNumber = "0655555555"
                 }
             );
 
@@ -96,7 +96,7 @@ namespace Hospital_Management.Core.Data
                     AdminID = 1,
                     UserID = 1,
                     FullName = "Arlind Krasniqi",
-                    PhoneNumber = "1234567890"
+                    PhoneNumber = "0612345678"
                 }
             );
 
@@ -107,14 +107,14 @@ namespace Hospital_Management.Core.Data
                     ReceptionistID = 1,
                     UserID = 2,
                     FullName = "RoZaldo",
-                    PhoneNumber = "9876543210"
+                    PhoneNumber = "0698765432"
                 },
                 new Receptionist
                 {
                     ReceptionistID = 2,
                     UserID = 3,
                     FullName = "Helena",
-                    PhoneNumber = "5555555555"
+                    PhoneNumber = "0655555555"
                 }
             );
 

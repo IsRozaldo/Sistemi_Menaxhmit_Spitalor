@@ -30,8 +30,8 @@ bld/
 [Bb]in/
 [Oo]bj/
 [Oo]ut/
-[Ll]og/
-[Ll]ogs/
+# [Ll]og/  # Commented out to track logs
+# [Ll]ogs/ # Commented out to track logs
 
 # Visual Studio 2015/2017 cache/options directory
 .vs/
