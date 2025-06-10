@@ -11,6 +11,7 @@ using System.Windows.Forms;
 using Hospital_Management.Core.Data;
 using Hospital_Management.Core.Entities;
 using Hospital_Management.Core; // Added for custom exceptions
+using Hospital_Management.Core.Utilities;
 
 namespace Hospital_Management.PL
 {
@@ -29,6 +30,8 @@ namespace Hospital_Management.PL
             // Add KeyPress handlers for Enter key navigation
             txtFullName.KeyPress += TextBox_KeyPress;
             txtPhoneNumber.KeyPress += TextBox_KeyPress;
+
+            Logger.LogInfo("ReceptionistForm initialized");
         }
 
         private void SetButtonAccess()
@@ -71,6 +74,8 @@ namespace Hospital_Management.PL
                 // Disable the Add button and enable the Edit button
                 btnAddRec.Enabled = false;
                 btnEditRec.Enabled = true;
+
+                Logger.LogInfo($"Receptionist selected: {originalReceptionist.FullName} (ID: {originalReceptionist.ReceptionistID})");
             }
         }
 
@@ -106,81 +111,42 @@ namespace Hospital_Management.PL
             {
                 if (!string.IsNullOrWhiteSpace(txtReceptionistID.Text))
                 {
-                    throw new DuplicateEntryException("You cannot create a duplicate receptionist. Please clear the form first.");
-                }
-                string name = txtFullName.Text.Trim();
-                
-                // Validate full name format
-                if (!Regex.IsMatch(name, @"^[a-zA-Z]+\s+[a-zA-Z]+$"))
-                {
-                    throw new ValidationException("Full name must contain both first and last name, and can only contain alphabetical letters.");
+                    throw new DuplicateEntryException("Receptionist", txtReceptionistID.Text,
+                        "You cannot create a duplicate receptionist. Please clear the form first.");
                 }
 
-                string phone = txtPhoneNumber.Text.Trim();
-
-                if (!Regex.IsMatch(phone, @"^06\d{8}$"))
+                // Validate inputs
+                if (string.IsNullOrWhiteSpace(txtFullName.Text))
                 {
-                    throw new ValidationException("Phone number must start with '06' followed by 8 digits.");
+                    throw new ValidationException("Full Name is required.");
+                }
+
+                if (string.IsNullOrWhiteSpace(txtPhoneNumber.Text))
+                {
+                    throw new ValidationException("Phone Number is required.");
                 }
 
                 using (var context = new HospitalContext())
                 {
-                    string username = txtFullName.Text.Trim().Split(' ')[0];
-                    string nameTrimmed = txtFullName.Text.Trim();
-                    string phoneTrimmed = txtPhoneNumber.Text.Trim();
-
-                    // Check for duplicate username
-                    if (context.Users.Any(u => u.Username == username))
-                    {
-                        throw new DuplicateEntryException($"A user with the username '{username}' already exists. Please use a different full name or modify the username generation logic.");
-                    }
-
-                    // Check for duplicate phone number
-                    if (context.Receptionists.Any(r => r.PhoneNumber == phoneTrimmed))
-                    {
-                        throw new DuplicateEntryException("A receptionist with this phone number already exists.");
-                    }
-
-                    // Create new user first
-                    var user = new User
-                    {
-                        Username = username,
-                        Password = User.HashPassword("Welcome123"), // Default password
-                        Role = "Receptionist",
-                        FullName = nameTrimmed,
-                        PhoneNumber = phoneTrimmed
-                    };
-
-                    context.Users.Add(user);
-                    context.SaveChanges();
-
-                    // Create new receptionist
                     var receptionist = new Receptionist
                     {
-                        FullName = nameTrimmed,
-                        PhoneNumber = phoneTrimmed,
-                        UserID = user.UserID
+                        FullName = txtFullName.Text,
+                        PhoneNumber = txtPhoneNumber.Text
                     };
 
                     context.Receptionists.Add(receptionist);
                     context.SaveChanges();
 
-                    MessageBox.Show("Receptionist added successfully!");
-                    ClearInputs();
+                    Logger.LogInfo($"New receptionist added: {receptionist.FullName} (ID: {receptionist.ReceptionistID})");
+                    MessageBox.Show("Receptionist added successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     LoadReceptionists();
+                    ClearInputs();
                 }
-            }
-            catch (ValidationException ex)
-            {
-                MessageBox.Show(ex.Message, "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            }
-            catch (DuplicateEntryException ex)
-            {
-                MessageBox.Show(ex.Message, "Duplicate Entry", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"An unexpected error occurred: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Logger.LogError("Error adding receptionist", ex);
+                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -206,6 +172,7 @@ namespace Hospital_Management.PL
             {
                 dataGridViewReceptionists.Columns["UserID"].Visible = false;
             }
+            Logger.LogInfo("Receptionist list loaded");
         }
 
         private void ReceptionistForm_Load(object sender, EventArgs e)
@@ -218,11 +185,14 @@ namespace Hospital_Management.PL
             txtReceptionistID.Clear();
             txtFullName.Clear();
             txtPhoneNumber.Clear();
+            btnAddRec.Enabled = true;
+            btnEditRec.Enabled = false;
         }
 
         private void btnNewRec_Click(object sender, EventArgs e)
         {
             ClearInputs();
+            Logger.LogInfo("New receptionist form cleared");
         }
 
         private void btnEditRec_Click(object sender, EventArgs e)
@@ -234,72 +204,38 @@ namespace Hospital_Management.PL
                     throw new ValidationException("Please select a receptionist to edit.");
                 }
 
-                if (!int.TryParse(txtReceptionistID.Text, out int Id))
+                // Validate inputs
+                if (string.IsNullOrWhiteSpace(txtFullName.Text))
                 {
-                    throw new ValidationException("Invalid receptionist ID.");
-                }
-                string name = txtFullName.Text.Trim();
-
-                if (!Regex.IsMatch(name, @"^[a-zA-Z\s]+$"))
-                {
-                    throw new ValidationException("Name can only contain letters and spaces.");
-                }
-                string phone = txtPhoneNumber.Text.Trim();
-
-                if (!Regex.IsMatch(phone, @"^\d+$"))
-                {
-                    throw new ValidationException("Phone number must contain only digits.");
-                }
-                if (txtPhoneNumber.Text.Length != 10)
-                {
-                    throw new ValidationException("Phone number must have exactly 10 digits.");
+                    throw new ValidationException("Full Name is required.");
                 }
 
-                bool isChanged = txtFullName.Text != originalReceptionist.FullName ||
-                                txtPhoneNumber.Text != originalReceptionist.PhoneNumber;
-
-                if (!isChanged)
+                if (string.IsNullOrWhiteSpace(txtPhoneNumber.Text))
                 {
-                    MessageBox.Show("You haven't changed any attributes.", "No Changes", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    return;
+                    throw new ValidationException("Phone Number is required.");
                 }
 
                 using (var context = new HospitalContext())
                 {
-                    var receptionist = context.Receptionists.Find(originalReceptionist.ReceptionistID);
-                    var user = context.Users.Find(receptionist?.UserID);
-
-                    if (receptionist != null && user != null)
+                    var receptionist = context.Receptionists.Find(Convert.ToInt32(txtReceptionistID.Text));
+                    if (receptionist != null)
                     {
-                        receptionist.FullName = txtFullName.Text.Trim();
-                        receptionist.PhoneNumber = txtPhoneNumber.Text.Trim();
-                        user.FullName = txtFullName.Text.Trim();
-                        user.PhoneNumber = txtPhoneNumber.Text.Trim();
+                        receptionist.FullName = txtFullName.Text;
+                        receptionist.PhoneNumber = txtPhoneNumber.Text;
 
                         context.SaveChanges();
 
-                        MessageBox.Show("Receptionist successfully updated!");
-
+                        Logger.LogInfo($"Receptionist updated: {receptionist.FullName} (ID: {receptionist.ReceptionistID})");
+                        MessageBox.Show("Receptionist updated successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
                         LoadReceptionists();
                         ClearInputs();
                     }
-                    else
-                    {
-                        throw new NotFoundException("Receptionist not found in database.");
-                    }
                 }
-            }
-            catch (ValidationException ex)
-            {
-                MessageBox.Show(ex.Message, "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            }
-            catch (NotFoundException ex)
-            {
-                MessageBox.Show(ex.Message, "Not Found Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"An unexpected error occurred: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Logger.LogError("Error updating receptionist", ex);
+                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -307,64 +243,36 @@ namespace Hospital_Management.PL
         {
             try
             {
-                if (string.IsNullOrWhiteSpace(txtReceptionistID.Text) || originalReceptionist == null)
+                if (string.IsNullOrWhiteSpace(txtReceptionistID.Text))
                 {
                     throw new ValidationException("Please select a receptionist to remove.");
                 }
 
-                if (!int.TryParse(txtReceptionistID.Text, out int Id))
-                {
-                    throw new ValidationException("Invalid receptionist ID.");
-                }
+                var result = MessageBox.Show("Are you sure you want to remove this receptionist?", "Confirm",
+                    MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
-                using (var context = new HospitalContext())
+                if (result == DialogResult.Yes)
                 {
-                    var receptionist = context.Receptionists.Find(Id);
-                    if (receptionist != null)
+                    using (var context = new HospitalContext())
                     {
-                        var user = context.Users.Find(receptionist.UserID);
-                        if (user != null)
+                        var receptionist = context.Receptionists.Find(Convert.ToInt32(txtReceptionistID.Text));
+                        if (receptionist != null)
                         {
-                            // Optional: Confirm deletion
-                            var result = MessageBox.Show("Are you sure you want to remove the receptionist?",
-                                                         "Confirm Deletion",
-                                                         MessageBoxButtons.YesNo,
-                                                         MessageBoxIcon.Warning);
+                            context.Receptionists.Remove(receptionist);
+                            context.SaveChanges();
 
-                            if (result == DialogResult.Yes)
-                            {
-                                context.Receptionists.Remove(receptionist);
-                                context.Users.Remove(user);
-                                context.SaveChanges();
-
-                                MessageBox.Show("Receptionist successfully removed!");
-
-                                LoadReceptionists();
-                                ClearInputs();
-                            }
-                        }
-                        else
-                        {
-                            throw new NotFoundException("User associated with receptionist not found.");
+                            Logger.LogInfo($"Receptionist removed: {receptionist.FullName} (ID: {receptionist.ReceptionistID})");
+                            MessageBox.Show("Receptionist removed successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                            LoadReceptionists();
+                            ClearInputs();
                         }
                     }
-                    else
-                    {
-                        throw new NotFoundException("Receptionist not found in database.");
-                    }
                 }
-            }
-            catch (ValidationException ex)
-            {
-                MessageBox.Show(ex.Message, "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            }
-            catch (NotFoundException ex)
-            {
-                MessageBox.Show(ex.Message, "Not Found Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"An unexpected error occurred: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Logger.LogError("Error removing receptionist", ex);
+                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 

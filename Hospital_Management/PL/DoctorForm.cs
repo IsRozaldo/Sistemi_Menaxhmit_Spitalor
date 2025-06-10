@@ -11,6 +11,7 @@ using System.Windows.Forms;
 using Hospital_Management.Core.Data;
 using Hospital_Management.Core.Entities;
 using Hospital_Management.Core; // Added for custom exceptions
+using Hospital_Management.Core.Utilities;
 
 namespace Hospital_Management.PL
 {
@@ -26,6 +27,8 @@ namespace Hospital_Management.PL
             txtFullName.KeyPress += TextBox_KeyPress;
             txtPhone.KeyPress += TextBox_KeyPress;
             txtOfficeNumber.KeyPress += TextBox_KeyPress;
+
+            Logger.LogInfo("DoctorForm initialized");
         }
 
         private void dataGridView1_CellContentClick(object? sender, DataGridViewCellEventArgs e)
@@ -51,14 +54,17 @@ namespace Hospital_Management.PL
                 txtOfficeNumber.Text = originalDoctor.OfficeNumber;
 
                 // Disable the Add button and enable the Edit button
-                button4.Enabled = false; // Add button
-                button3.Enabled = true;  // Edit button
+                button4.Enabled = false;
+                button2.Enabled = true;
+
+                Logger.LogInfo($"Doctor selected: {originalDoctor.FullName} (ID: {originalDoctor.DoctorID})");
             }
         }
 
         private void button1_Click(object? sender, EventArgs e)
         {
-            ClearInputs(); 
+            ClearInputs();
+            Logger.LogInfo("New doctor form cleared");
         }
 
         private void txtPhone_KeyPress(object? sender, KeyPressEventArgs e)
@@ -93,161 +99,58 @@ namespace Hospital_Management.PL
             {
                 if (!string.IsNullOrWhiteSpace(txtDoctorID.Text))
                 {
-                    throw new DuplicateEntryException("You cannot create a duplicate Doctor. Please clear the form first.");
-                }
-                string fullName = txtFullName.Text.Trim();
-                
-                // Validate full name format
-                if (!Regex.IsMatch(fullName, @"^[a-zA-Z]+\s+[a-zA-Z]+$"))
-                {
-                    throw new ValidationException("Full name must contain both first and last name, and can only contain alphabetical letters.");
+                    throw new DuplicateEntryException("Doctor", txtDoctorID.Text,
+                        "You cannot create a duplicate doctor. Please clear the form first.");
                 }
 
-                string specialty = cmbSpecialty.Text.Trim();
-                string phone = txtPhone.Text.Trim();
-                string officeNumber = txtOfficeNumber.Text.Trim();
-
-                // Basic validation
-                if (string.IsNullOrWhiteSpace(fullName) || string.IsNullOrWhiteSpace(phone) || string.IsNullOrWhiteSpace(specialty) || string.IsNullOrWhiteSpace(officeNumber))
+                // Validate inputs
+                if (string.IsNullOrWhiteSpace(txtFullName.Text))
                 {
-                    throw new ValidationException("Please fill out all required fields.");
+                    throw new ValidationException("Full Name is required.");
                 }
 
-                if (!Regex.IsMatch(phone, @"^06\d{8}$"))
+                if (cmbSpecialty.SelectedIndex == -1)
                 {
-                    throw new ValidationException("Phone number must start with '06' followed by 8 digits.");
+                    throw new ValidationException("Specialty is required.");
                 }
 
-                if (!Regex.IsMatch(officeNumber, @"^[A-Z]\d{3}$"))
+                if (string.IsNullOrWhiteSpace(txtPhone.Text))
                 {
-                    throw new ValidationException("Office number must start with a capital letter followed by exactly 3 digits.");
+                    throw new ValidationException("Phone Number is required.");
+                }
+
+                if (string.IsNullOrWhiteSpace(txtOfficeNumber.Text))
+                {
+                    throw new ValidationException("Office Number is required.");
                 }
 
                 using (var context = new HospitalContext())
                 {
-                    // Check if a doctor with the same phone number already exists
-                    if (context.Doctors.Any(d => d.PhoneNumber == phone))
-                    {
-                        throw new DuplicateEntryException("A doctor with this phone number already exists.");
-                    }
-
-                    // Add new doctor
                     var doctor = new Doctor
                     {
-                        FullName = fullName,
-                        Specialty = specialty,
-                        PhoneNumber = phone,
-                        OfficeNumber = officeNumber
+                        FullName = txtFullName.Text,
+                        Specialty = cmbSpecialty.SelectedItem.ToString(),
+                        PhoneNumber = txtPhone.Text,
+                        OfficeNumber = txtOfficeNumber.Text
                     };
 
                     context.Doctors.Add(doctor);
                     context.SaveChanges();
 
-                    MessageBox.Show("Doctor added successfully!");
-
-                    ClearInputs();
+                    Logger.LogInfo($"New doctor added: {doctor.FullName} (ID: {doctor.DoctorID})");
+                    MessageBox.Show("Doctor added successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     LoadDoctors();
+                    ClearInputs();
                 }
-            }
-            catch (ValidationException ex)
-            {
-                MessageBox.Show(ex.Message, "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            }
-            catch (DuplicateEntryException ex)
-            {
-                MessageBox.Show(ex.Message, "Duplicate Entry", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"An unexpected error occurred: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Logger.LogError("Error adding doctor", ex);
+                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-        }
-        private void LoadDoctors()
-        {
-            using (var context = new HospitalContext())
-            {
-                dataGridViewDoctors.DataSource = context.Doctors
-                     .Select(d => new
-                     {
-                         d.FullName,
-                         d.PhoneNumber,
-                         d.Specialty,
-                         d.OfficeNumber,
-                         d.DoctorID
-                     }).ToList();
-                dataGridViewDoctors.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
-            }
-            if (dataGridViewDoctors.Columns["DoctorID"] != null)
-            {
-                dataGridViewDoctors.Columns["DoctorID"].Visible = false;
-            }
-        }
-        private void DoctorForm_Load(object? sender, EventArgs e)
-        {
-            LoadDoctors(); // Load doctors into the DataGridView when the form loads
-        }
-        private void ClearInputs()
-        {
-            txtDoctorID.Clear();
-            txtFullName.Clear();
-            txtPhone.Clear();
-            txtOfficeNumber.Clear();
-            cmbSpecialty.SelectedIndex = -1;
         }
 
         private void button2_Click(object? sender, EventArgs e)
-        {
-            try
-            {
-                if (!int.TryParse(txtDoctorID.Text, out int doctorId))
-                {
-                    throw new ValidationException("Please select a doctor to delete.");
-                }
-
-                // Optional: Confirm deletion
-                var result = MessageBox.Show("Are you sure you want to delete this doctor?",
-                                             "Confirm Deletion",
-                                             MessageBoxButtons.YesNo,
-                                             MessageBoxIcon.Warning);
-
-                if (result == DialogResult.Yes)
-                {
-                    using (var context = new HospitalContext())
-                    {
-                        var doctor = context.Doctors.Find(doctorId);
-
-                        if (doctor != null)
-                        {
-                            context.Doctors.Remove(doctor);
-                            context.SaveChanges();
-
-                            MessageBox.Show("Doctor successfully deleted.");
-
-                            LoadDoctors();  // Refresh the DataGridView
-                            ClearInputs();   // Clear the textboxes (optional)
-                        }
-                        else
-                        {
-                            throw new NotFoundException("Doctor not found.");
-                        }
-                    }
-                }
-            }
-            catch (ValidationException ex)
-            {
-                MessageBox.Show(ex.Message, "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            }
-            catch (NotFoundException ex)
-            {
-                MessageBox.Show(ex.Message, "Not Found Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"An unexpected error occurred: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
-
-        private void button3_Click(object? sender, EventArgs e)
         {
             try
             {
@@ -256,75 +159,87 @@ namespace Hospital_Management.PL
                     throw new ValidationException("Please select a doctor to edit.");
                 }
 
-                if (!int.TryParse(txtDoctorID.Text, out int Id))
+                // Validate inputs
+                if (string.IsNullOrWhiteSpace(txtFullName.Text))
                 {
-                    throw new ValidationException("Invalid doctor ID.");
+                    throw new ValidationException("Full Name is required.");
                 }
 
-                if (txtPhone.Text.Length != 10)
+                if (cmbSpecialty.SelectedIndex == -1)
                 {
-                    throw new ValidationException("Phone number must have exactly 10 digits.");
+                    throw new ValidationException("Specialty is required.");
                 }
 
-                string fullName = txtFullName.Text.Trim();
-
-                if (!Regex.IsMatch(fullName, @"^[a-zA-Z\s]+$"))
+                if (string.IsNullOrWhiteSpace(txtPhone.Text))
                 {
-                    throw new ValidationException("You cannot edit a patient by adding numbers or symbols to the patient name.");
-                }
-                
-                string officeNumber = txtOfficeNumber.Text.Trim();
-
-                if (!Regex.IsMatch(officeNumber, @"^[A-Z]\d{3}$"))
-                {
-                    throw new ValidationException("Office number must start with a capital letter followed by exactly 3 digits.");
+                    throw new ValidationException("Phone Number is required.");
                 }
 
-                bool isChanged = txtFullName.Text != originalDoctor.FullName ||
-                                cmbSpecialty.Text != originalDoctor.Specialty ||
-                                txtPhone.Text != originalDoctor.PhoneNumber ||
-                                txtOfficeNumber.Text != originalDoctor.OfficeNumber;
-                if (!isChanged)
+                if (string.IsNullOrWhiteSpace(txtOfficeNumber.Text))
                 {
-                    MessageBox.Show("You haven't changed any attributes.", "No Changes", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    return;
+                    throw new ValidationException("Office Number is required.");
                 }
 
                 using (var context = new HospitalContext())
                 {
-                    var doctor = context.Doctors.Find(originalDoctor.DoctorID);
-
+                    var doctor = context.Doctors.Find(Convert.ToInt32(txtDoctorID.Text));
                     if (doctor != null)
                     {
                         doctor.FullName = txtFullName.Text;
+                        doctor.Specialty = cmbSpecialty.SelectedItem.ToString();
                         doctor.PhoneNumber = txtPhone.Text;
-                        doctor.Specialty = cmbSpecialty.Text;
                         doctor.OfficeNumber = txtOfficeNumber.Text;
 
                         context.SaveChanges();
 
-                        MessageBox.Show("Doctor successfully updated!");
-
+                        Logger.LogInfo($"Doctor updated: {doctor.FullName} (ID: {doctor.DoctorID})");
+                        MessageBox.Show("Doctor updated successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
                         LoadDoctors();
                         ClearInputs();
                     }
-                    else
-                    {
-                        throw new NotFoundException("Doctor not found in database.");
-                    }
                 }
-            }
-            catch (ValidationException ex)
-            {
-                MessageBox.Show(ex.Message, "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            }
-            catch (NotFoundException ex)
-            {
-                MessageBox.Show(ex.Message, "Not Found Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"An unexpected error occurred: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Logger.LogError("Error updating doctor", ex);
+                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void button3_Click(object? sender, EventArgs e)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(txtDoctorID.Text))
+                {
+                    throw new ValidationException("Please select a doctor to remove.");
+                }
+
+                var result = MessageBox.Show("Are you sure you want to remove this doctor?", "Confirm",
+                    MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+
+                if (result == DialogResult.Yes)
+                {
+                    using (var context = new HospitalContext())
+                    {
+                        var doctor = context.Doctors.Find(Convert.ToInt32(txtDoctorID.Text));
+                        if (doctor != null)
+                        {
+                            context.Doctors.Remove(doctor);
+                            context.SaveChanges();
+
+                            Logger.LogInfo($"Doctor removed: {doctor.FullName} (ID: {doctor.DoctorID})");
+                            MessageBox.Show("Doctor removed successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                            LoadDoctors();
+                            ClearInputs();
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError("Error removing doctor", ex);
+                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -335,6 +250,44 @@ namespace Hospital_Management.PL
                 e.Handled = true; // Prevent the beep sound
                 SelectNextControl((Control)sender, true, true, true, true);
             }
+        }
+
+        private void LoadDoctors()
+        {
+            using (var context = new HospitalContext())
+            {
+                dataGridViewDoctors.DataSource = context.Doctors
+                    .Select(d => new
+                    {
+                        d.DoctorID,
+                        d.FullName,
+                        d.Specialty,
+                        d.PhoneNumber,
+                        d.OfficeNumber
+                    }).ToList();
+                dataGridViewDoctors.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            }
+            if (dataGridViewDoctors.Columns["DoctorID"] != null)
+            {
+                dataGridViewDoctors.Columns["DoctorID"].Visible = false;
+            }
+            Logger.LogInfo("Doctor list loaded");
+        }
+
+        private void ClearInputs()
+        {
+            txtDoctorID.Clear();
+            txtFullName.Clear();
+            cmbSpecialty.SelectedIndex = -1;
+            txtPhone.Clear();
+            txtOfficeNumber.Clear();
+            button4.Enabled = true;
+            button2.Enabled = false;
+        }
+
+        private void DoctorForm_Load(object? sender, EventArgs e)
+        {
+            LoadDoctors();
         }
     }
 }

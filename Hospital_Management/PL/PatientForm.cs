@@ -12,6 +12,7 @@ using System.Windows.Forms;
 using Hospital_Management.Core.Data;
 using Hospital_Management.Core.Entities;
 using Hospital_Management.Core; // Added for custom exceptions
+using Hospital_Management.Core.Utilities;
 
 namespace Hospital_Management.PL
 {
@@ -33,6 +34,8 @@ namespace Hospital_Management.PL
             txtAge.KeyPress += TextBox_KeyPress;
             txtPhoneNumber.KeyPress += TextBox_KeyPress;
             txtDescription.KeyPress += TextBox_KeyPress;
+
+            Logger.LogInfo("PatientForm initialized");
         }
         private void TxtPhoneNumber_KeyPress(object? sender, KeyPressEventArgs e)
         {
@@ -198,6 +201,7 @@ namespace Hospital_Management.PL
                         context.Patients.Add(patient);
                         context.SaveChanges();
 
+                        Logger.LogInfo($"New patient added: {patient.FullName} (ID: {patient.Id})");
                         MessageBox.Show("Patient added successfully!");
                         ClearInputs();
                         LoadPatients();
@@ -226,6 +230,7 @@ namespace Hospital_Management.PL
             }
             catch (Exception ex)
             {
+                Logger.LogError("Error adding patient", ex);
                 MessageBox.Show($"An unexpected error occurred: {ex.Message}", 
                     "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
@@ -255,6 +260,7 @@ namespace Hospital_Management.PL
         private void PatientForm_Load(object? sender, EventArgs e)
         {
             LoadPatients();
+            Logger.LogInfo("Patient list loaded");
         }
         private void ClearInputs()
         {
@@ -325,6 +331,7 @@ namespace Hospital_Management.PL
 
                         context.SaveChanges();
 
+                        Logger.LogInfo($"Patient updated: {patient.FullName} (ID: {patient.Id})");
                         MessageBox.Show("Patient successfully updated!");
 
                         LoadPatients();
@@ -346,6 +353,7 @@ namespace Hospital_Management.PL
             }
             catch (Exception ex)
             {
+                Logger.LogError("Error updating patient", ex);
                 MessageBox.Show($"An unexpected error occurred: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
@@ -384,6 +392,7 @@ namespace Hospital_Management.PL
                                 context.Patients.Remove(patient);
                                 context.SaveChanges();
 
+                                Logger.LogInfo($"Patient removed: {patient.FullName} (ID: {patient.Id})");
                                 MessageBox.Show("Patient removed successfully.");
                                 LoadPatients();
                                 ClearInputs();
@@ -419,6 +428,7 @@ namespace Hospital_Management.PL
             }
             catch (Exception ex)
             {
+                Logger.LogError("Error removing patient", ex);
                 MessageBox.Show($"An unexpected error occurred: {ex.Message}", 
                     "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
@@ -427,11 +437,13 @@ namespace Hospital_Management.PL
         private void btnNewPatient_Click(object? sender, EventArgs e)
         {
             ClearInputs();
+            Logger.LogInfo("New patient form cleared");
         }
 
         private void btnRefresh_Click(object? sender, EventArgs e)
         {
             LoadPatients();
+            Logger.LogInfo("Patient list refreshed");
         }
 
         private void TextBox_KeyPress(object? sender, KeyPressEventArgs e)

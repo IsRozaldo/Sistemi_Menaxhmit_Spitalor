@@ -11,12 +11,14 @@ using System.Windows.Forms;
 using Hospital_Management.Core.Data;
 using Hospital_Management.Core.Entities;
 using Hospital_Management.Core;
+using Hospital_Management.Core.Utilities;
 
 namespace Hospital_Management.PL
 {
     public partial class AppointmentForm : Form
     {
         private int originalPatientID;
+        private Appointment? originalAppointment;
         public AppointmentForm()
         {
             InitializeComponent();
@@ -33,6 +35,7 @@ namespace Hospital_Management.PL
             LoadDoctorsIntoFilterComboBox();
             LoadPatientsIntoFilterComboBox();
             LoadAppointmentsToGrid(null, null, null);
+            Logger.LogInfo("AppointmentForm initialized");
         }
         private void LoadPatientsIntoComboBox()
         {
@@ -244,6 +247,7 @@ namespace Hospital_Management.PL
                         MessageBox.Show("Appointment successfully added!");
                         LoadAppointmentsToGrid(null, null, null);
                         ClearForm();
+                        Logger.LogInfo($"New appointment added: ID {appointment.AppointmentID} for patient {cmbSelectPatient.Text} with doctor {cmbAssignedTo.Text}");
                     }
                     catch (Exception ex)
                     {
@@ -303,6 +307,7 @@ namespace Hospital_Management.PL
                                 MessageBox.Show("Appointment removed successfully.");
                                 LoadAppointmentsToGrid(null, null, null);
                                 ClearForm();
+                                Logger.LogInfo($"Appointment removed: ID {appointment.AppointmentID}");
                             }
                             else
                             {
@@ -338,6 +343,7 @@ namespace Hospital_Management.PL
         {
             ClearForm();
             LoadAppointmentsToGrid(null, null, null); // Reload all appointments
+            Logger.LogInfo("New appointment form cleared");
         }
 
         private void btnEditRec_Click(object? sender, EventArgs e)
@@ -385,6 +391,7 @@ namespace Hospital_Management.PL
                             MessageBox.Show("Appointment updated successfully!");
                             LoadAppointmentsToGrid(null, null, null);
                             ClearForm();
+                            Logger.LogInfo($"Appointment updated: ID {appointment.AppointmentID} for patient {cmbSelectPatient.Text} with doctor {cmbAssignedTo.Text}");
                         }
                         else
                         {
