@@ -41,6 +41,7 @@ namespace Hospital_Management.PL
             lblSelectedServices = new Label();
             lblTotalAmount = new Label();
             btnGenerateBill = new Button();
+            btnExportToExcel = new Button();
             panel1 = new Panel();
             label1 = new Label();
             ((System.ComponentModel.ISupportInitialize)dataGridViewServices).BeginInit();
@@ -174,6 +175,18 @@ namespace Hospital_Management.PL
             btnGenerateBill.UseVisualStyleBackColor = false;
             btnGenerateBill.Click += btnGenerateBill_Click;
             // 
+            // btnExportToExcel
+            // 
+            btnExportToExcel.BackColor = Color.BurlyWood;
+            btnExportToExcel.Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold);
+            btnExportToExcel.Location = new Point(634, 538);
+            btnExportToExcel.Name = "btnExportToExcel";
+            btnExportToExcel.Size = new Size(161, 54);
+            btnExportToExcel.TabIndex = 11;
+            btnExportToExcel.Text = "Export to Excel";
+            btnExportToExcel.UseVisualStyleBackColor = false;
+            btnExportToExcel.Click += btnExportToExcel_Click;
+            // 
             // panel1
             // 
             panel1.BackColor = Color.Wheat;
@@ -200,6 +213,7 @@ namespace Hospital_Management.PL
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.Linen;
             ClientSize = new Size(900, 602);
+            Controls.Add(btnExportToExcel);
             Controls.Add(panel1);
             Controls.Add(btnGenerateBill);
             Controls.Add(lblTotalAmount);
@@ -234,6 +248,7 @@ namespace Hospital_Management.PL
         private System.Windows.Forms.Label lblSelectedServices;
         private System.Windows.Forms.Label lblTotalAmount;
         private System.Windows.Forms.Button btnGenerateBill;
+        private System.Windows.Forms.Button btnExportToExcel;
         private Panel panel1;
         private Label label1;
     }

@@ -5,6 +5,9 @@ using Hospital_Management.Core.Entities;
 using System.Linq;
 using System.Collections.Generic;
 using Hospital_Management.Core;
+using OfficeOpenXml;
+using System.IO;
+using System.Text.Json;
 
 namespace Hospital_Management.PL
 {
@@ -14,6 +17,7 @@ namespace Hospital_Management.PL
 
         public BillForm()
         {
+            ExcelPackage.License.SetNonCommercialPersonal("Cursor AI");
             InitializeComponent();
             LoadPatients();
             LoadServices();
@@ -137,6 +141,100 @@ namespace Hospital_Management.PL
             catch (Exception ex)
             {
                 MessageBox.Show($"An error occurred: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void btnExportToExcel_Click(object? sender, EventArgs e)
+        {
+            try
+            {
+                if (cmbPatient.SelectedValue == null)
+                {
+                    throw new ValidationException("Please select a patient.");
+                }
+                if (selectedServices.Count == 0)
+                {
+                    throw new ValidationException("Please add at least one service.");
+                }
+
+                using (var saveFileDialog = new SaveFileDialog())
+                {
+                    saveFileDialog.Filter = "Excel Files|*.xlsx";
+                    saveFileDialog.Title = "Save Bill as Excel";
+                    saveFileDialog.FileName = $"Bill_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
+
+                    if (saveFileDialog.ShowDialog() == DialogResult.OK)
+                    {
+                        using (var package = new ExcelPackage())
+                        {
+                            var worksheet = package.Workbook.Worksheets.Add("Bill Details");
+
+                            // Add hospital information
+                            worksheet.Cells["A1"].Value = "Hospital Management System";
+                            worksheet.Cells["A2"].Value = "Bill Details";
+                            worksheet.Cells["A3"].Value = $"Date: {DateTime.Now:yyyy-MM-dd HH:mm:ss}";
+
+                            // Add patient information
+                            var patient = (Patient)cmbPatient.SelectedItem;
+                            worksheet.Cells["A5"].Value = "Patient Information";
+                            worksheet.Cells["A6"].Value = "Name:";
+                            worksheet.Cells["B6"].Value = patient.FullName;
+                            worksheet.Cells["A7"].Value = "Phone:";
+                            worksheet.Cells["B7"].Value = patient.PhoneNumber;
+
+                            // Add services information
+                            worksheet.Cells["A9"].Value = "Services";
+                            worksheet.Cells["A10"].Value = "Service Name";
+                            worksheet.Cells["B10"].Value = "Price";
+
+                            int row = 11;
+                            foreach (var service in selectedServices)
+                            {
+                                worksheet.Cells[$"A{row}"].Value = service.Name;
+                                worksheet.Cells[$"B{row}"].Value = service.Price;
+                                row++;
+                            }
+
+                            // Add total
+                            worksheet.Cells[$"A{row + 1}"].Value = "Total Amount:";
+                            worksheet.Cells[$"B{row + 1}"].Value = selectedServices.Sum(s => s.Price);
+
+                            // Format the worksheet
+                            worksheet.Cells["A1:B1"].Merge = true;
+                            worksheet.Cells["A2:B2"].Merge = true;
+                            worksheet.Cells["A3:B3"].Merge = true;
+                            worksheet.Cells["A5:B5"].Merge = true;
+                            worksheet.Cells["A9:B9"].Merge = true;
+
+                            worksheet.Cells["A1"].Style.Font.Size = 14;
+                            worksheet.Cells["A1"].Style.Font.Bold = true;
+                            worksheet.Cells["A2"].Style.Font.Size = 12;
+                            worksheet.Cells["A2"].Style.Font.Bold = true;
+                            worksheet.Cells["A5"].Style.Font.Bold = true;
+                            worksheet.Cells["A9"].Style.Font.Bold = true;
+                            worksheet.Cells["A10:B10"].Style.Font.Bold = true;
+
+                            worksheet.Cells[$"A{row + 1}"].Style.Font.Bold = true;
+                            worksheet.Cells[$"B{row + 1}"].Style.Font.Bold = true;
+
+                            // Auto-fit columns
+                            worksheet.Cells[worksheet.Dimension.Address].AutoFitColumns();
+
+                            // Save the file
+                            package.SaveAs(new FileInfo(saveFileDialog.FileName));
+                        }
+
+                        MessageBox.Show("Bill exported to Excel successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                }
+            }
+            catch (ValidationException ex)
+            {
+                MessageBox.Show(ex.Message, "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"An error occurred while exporting to Excel: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
