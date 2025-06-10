@@ -86,6 +86,15 @@ namespace Hospital_Management.Core.Data
                     Role = "Receptionist",
                     FullName = "Helena",
                     PhoneNumber = "0655555555"
+                },
+                new User
+                {
+                    UserID = 4,
+                    Username = "ina",
+                    Password = User.HashPassword("2233"),
+                    Role = "Receptionist",
+                    FullName = "Ina",
+                    PhoneNumber = "0689078456"
                 }
             );
 
@@ -115,6 +124,13 @@ namespace Hospital_Management.Core.Data
                     UserID = 3,
                     FullName = "Helena",
                     PhoneNumber = "0655555555"
+                },
+                new Receptionist
+                {
+                    ReceptionistID = 3,
+                    UserID = 4,
+                    FullName = "Ina",
+                    PhoneNumber = "0689078456"
                 }
             );
 
