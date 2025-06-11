@@ -1,6 +1,6 @@
 using Hospital_Management.Core.Data;
 using Hospital_Management.Core.Entities;
-using Hospital_Management.Core; // Added for custom exceptions
+using Hospital_Management.Core; 
 
 namespace Hospital_Management.PL
 {
@@ -9,8 +9,8 @@ namespace Hospital_Management.PL
         public Form1()
         {
             InitializeComponent();
-            // Add event handlers for Enter key
-            txtUsername.KeyPress += TxtUsername_KeyPress;
+            
+            txtUsername.KeyPress += TxtUsername_KeyPress;//event handler
             txtPassword.KeyPress += TxtPassword_KeyPress;
         }
 
@@ -27,9 +27,8 @@ namespace Hospital_Management.PL
         {
             if (e.KeyChar == (char)Keys.Enter)
             {
-                e.Handled = true; // Prevent the beep sound
-                btnLogin_Click(sender, e); // Trigger login button click
-            }
+                e.Handled = true; 
+                btnLogin_Click(sender, e); 
         }
 
         private void btnLogin_Click(object? sender, EventArgs e)
@@ -49,7 +48,7 @@ namespace Hospital_Management.PL
 
                 using (var context = new HospitalContext())
                 {
-                    // First check if username exists
+                    //nqs ekziston useri
                     var user = context.Users.FirstOrDefault(u => u.Username == username);
                     
                     if (user == null)
@@ -58,21 +57,21 @@ namespace Hospital_Management.PL
                             "Username not found. Please check your username and try again.");
                     }
 
-                    // Then check if password matches
+                    // nqs passwordi i sakte
                     if (user.Password != hashedPassword)
                     {
                         throw new AuthenticationException(username, 
                             "Incorrect password. Please try again.");
                     }
 
-                    // If we get here, both username and password are correct
+                    // nqs te dyja sakte
                     if (user.Role == "Admin" || user.Role == "Receptionist")
                     {
                         MessageBox.Show($"Welcome, {user.FullName}!", "Login Successful", 
                             MessageBoxButtons.OK, MessageBoxIcon.Information);
-                        Main mn = new Main(user.Role); // Pass the user's role to Main form
+                        Main mn = new Main(user.Role); // ndarja sipas rolit
                         mn.Show();
-                        this.Hide(); // Hide the login form
+                        this.Hide(); // fsheh login formen
                     }
                     else
                     {
