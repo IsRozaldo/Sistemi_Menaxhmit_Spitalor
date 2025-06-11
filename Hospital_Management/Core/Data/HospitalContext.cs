@@ -149,7 +149,7 @@ namespace Hospital_Management.Core.Data
 
             modelBuilder.Entity<Service>().HasData(services);
 
-            // Add unique constraints for phone numbers
+            
             modelBuilder.Entity<Patient>()
                 .HasIndex(p => p.PhoneNumber)
                 .IsUnique();
